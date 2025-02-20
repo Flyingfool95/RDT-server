@@ -14,7 +14,6 @@ html {
 
 body {
     min-height: 100dvh;
-    line-height: 1.5;
     padding: 1rem;
     margin: 0;
 }
@@ -27,8 +26,6 @@ h5,
 h6 {
     margin-top: 0;
     text-wrap: balance;
-    line-height: 1.2;
-    letter-spacing: 1.5px;
 }
 
 img,
