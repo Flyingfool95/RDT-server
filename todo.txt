@@ -10,9 +10,9 @@
             - Helper functions
 
     -Install
-       a. Zustand
-       b. React Router Dom
-       c. React Query (Tanstack Query)
+    #   a. Zustand
+    #   b. React Router Dom
+    #   c. React Query (Tanstack Query)
 
     - Routes
        a. Login
