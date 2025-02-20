@@ -1,0 +1,66 @@
+# 1. Create app core
+- Look into
+        a. Testing
+        b. .env load shared root file
+        c. Documentation
+            - Packages used
+            - Tech stack
+            - Error handeling
+            - Components
+            - Helper functions
+
+    -Install
+       a. Zustand
+       b. React Router Dom
+       c. React Query (Tanstack Query)
+
+    - Routes
+       a. Login
+       b. Register
+       c. Reset password
+       d. Dashboard
+
+    - Layouts
+       a. RouteGuard
+    
+    - Hooks
+        a. useAuth
+           - Register
+           - Login
+           - Logout
+
+# 2. Create server core
+    - Look into
+        a. Logging
+        b. Testing
+        c. Security (CSRF, XSS etc)
+        d. Email SMTP
+        e. DB migration tools?
+        f. .env load shared root file
+        g. Documentation
+            - Packages used
+            - Tech stack
+            - Error handeling
+            - API endpoints in core
+
+
+    - Install
+       a. Zod (Validation)
+       b. Djwt
+       c. SQLite
+    #   d. Oak 
+
+    - Middleware
+        a. rate-limit
+        b. CORS
+        c. auth check
+
+    - Routes
+        a. /auth
+            - /login
+            - /register
+            - /refresh
+            - /delete
+            - /update
+            - /show
+        b. 
