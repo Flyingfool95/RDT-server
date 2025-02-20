@@ -15,7 +15,7 @@
     ###   c. React Query (Tanstack Query)
 
     - Routes
-       a. Login
+    ###   a. Login
        b. Register
        c. Reset password
        d. Dashboard
