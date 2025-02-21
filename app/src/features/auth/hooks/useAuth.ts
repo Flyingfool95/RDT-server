@@ -15,8 +15,11 @@ export default function useAuth() {
                 email: formData.get("email"),
                 password: formData.get("password"),
             });
-            console.log("Logging in with data:", result);
-            
+            console.log("Login with data:", result);
+            console.log(import.meta.env.API_BASE_URL)
+
+            const response = fetch(`${import.meta.env.API_BASE_URL}/api/v1/auth/login`);
+
             //Send data to login endpoint of server
         },
         onSuccess: () => {
@@ -25,7 +28,7 @@ export default function useAuth() {
             //Redirect to dashboard
         },
         onError: (error) => {
-            console.error("Logging failed. ", error.message);
+            console.error("Login failed. ", error.message);
         },
     });
 
