@@ -15,15 +15,25 @@ export default function useAuth() {
                 email: formData.get("email"),
                 password: formData.get("password"),
             });
-            console.log("Login with data:", result);
-            console.log(import.meta.env.API_BASE_URL)
 
-            const response = fetch(`${import.meta.env.API_BASE_URL}/api/v1/auth/login`);
+            /*  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/login`, {
+                method: "POST",
+                body: JSON.stringify(result),
+            }); */
+            /* Temp respons until API is built */
+            const response = {
+                status: 200,
+                data: "Success",
+            };
 
-            //Send data to login endpoint of server
+            if (response.status >= 400) {
+                throw new Error(`Something went wrong. Error code: ${response.status}`);
+            }
+
+            return response;
         },
-        onSuccess: () => {
-            console.log("Success...");
+        onSuccess: (data) => {
+            console.log(data);
             //Set user to user data
             //Redirect to dashboard
         },
