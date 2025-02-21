@@ -10,18 +10,19 @@ export default function useAuth() {
     const loginUser = useMutation({
         mutationFn: async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-
             const formData = new FormData(e.target as HTMLFormElement);
-
             const result = validateInputData(loginSchema, {
                 email: formData.get("email"),
                 password: formData.get("password"),
             });
-
             console.log("Logging in with data:", result);
+            
+            //Send data to login endpoint of server
         },
         onSuccess: () => {
             console.log("Success...");
+            //Set user to user data
+            //Redirect to dashboard
         },
         onError: (error) => {
             console.error("Logging failed. ", error.message);
