@@ -1,8 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { loginSchema } from "../../../../../shared/zod/auth";
 import { validateInputData } from "../../../../../shared/helpers/auth";
+import useNotificationStore from "../../notifications/store/useNotificationStore";
 
 export default function useAuth() {
+    const { addNotification } = useNotificationStore((state) => state);
+
     async function registerUser() {
         // Register logic
     }
@@ -38,7 +41,7 @@ export default function useAuth() {
             //Redirect to dashboard
         },
         onError: (error) => {
-            console.error("Login failed. ", error.message);
+            addNotification({ message: error.message, type: "error" });
         },
     });
 
