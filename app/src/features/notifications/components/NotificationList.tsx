@@ -1,3 +1,4 @@
+import "../style/notifications.css";
 import useNotificationStore from "../store/useNotificationStore";
 import { INotificationStore } from "../types";
 
@@ -9,7 +10,7 @@ export default function NotificationList() {
             {notifications.map(({ id, message, type }) => (
                 <div key={id} className={`notification ${type}`}>
                     <p>{message}</p>
-                    <button onClick={() => removeNotification(id)}>X</button>
+                    <button onClick={() => removeNotification(id)}></button>
                 </div>
             ))}
         </div>

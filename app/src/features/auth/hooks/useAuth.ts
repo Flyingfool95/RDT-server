@@ -11,19 +11,10 @@ export default function useAuth() {
     }
 
     const loginUser = useMutation({
-        mutationFn: async (e: React.FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            const formData = new FormData(e.target as HTMLFormElement);
-            const result = validateInputData(loginSchema, {
-                email: formData.get("email"),
-                password: formData.get("password"),
-            });
+        mutationFn: async ({ email, password }: { email: string; password: string }) => {
+            const result = validateInputData(loginSchema, { email, password });
 
-            /*  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/login`, {
-                method: "POST",
-                body: JSON.stringify(result),
-            }); */
-            /* Temp respons until API is built */
+            /* Simulated API response */
             const response = {
                 status: 200,
                 data: "Success",
@@ -37,11 +28,11 @@ export default function useAuth() {
         },
         onSuccess: (data) => {
             console.log(data);
-            //Set user to user data
-            //Redirect to dashboard
+            // Set user to user data
+            // Redirect to dashboard
         },
         onError: (error) => {
-            addNotification({ message: error.message, type: "error" });
+            addNotification({ message: error.message, type: "error", duration: 7000 });
         },
     });
 
