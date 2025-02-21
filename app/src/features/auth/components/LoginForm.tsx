@@ -1,9 +1,17 @@
-import useAuth from "../hooks/useLogin";
+import useAuth from "../hooks/useAuth";
 
 export default function LoginForm() {
     const { loginUser } = useAuth();
 
-    //Use useMutate from React Query here to login user onSubmit
+    return (
+        <form onSubmit={loginUser.mutate}>
+            <label htmlFor="email">Email</label>
+            <input type="email" name="email" id="email" />
 
-    return <form onSubmit={() => console.log("Logging in user...")}></form>;
+            <label htmlFor="password">Password</label>
+            <input type="password" name="password" id="password" />
+
+            <input type="submit" value="Login" />
+        </form>
+    );
 }
