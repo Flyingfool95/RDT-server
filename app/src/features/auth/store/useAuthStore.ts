@@ -3,7 +3,7 @@ import { IAuthStore, IUser } from "../../../../../shared/types/auth";
 
 const useAuthStore = create<IAuthStore>((set) => ({
     user: null,
-    setUser: (newUser: IUser) => {
+    setUser: (newUser: IUser | null) => {
         set(() => ({
             user: newUser,
         }));

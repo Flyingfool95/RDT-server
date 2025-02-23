@@ -55,7 +55,9 @@ export default function useAuth() {
         // Update logic
     }
     async function logoutUser() {
-        // Logout logic
+        //Clear httpcookie
+        setUser(null);
+        addNotification({ message: "Logged out", type: "warning", duration: 5000 });
     }
     async function deleteUser() {
         // Delete user

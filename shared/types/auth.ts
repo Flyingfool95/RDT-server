@@ -5,5 +5,5 @@ export interface IUser {
 }
 export interface IAuthStore {
     user: IUser | null;
-    setUser: (newUser: IUser) => void;
+    setUser: (newUser: IUser | null) => void;
 }

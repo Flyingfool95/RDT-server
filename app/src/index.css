@@ -14,7 +14,6 @@ html {
 
 body {
     min-height: 100dvh;
-    padding: 1rem;
     margin: 0;
 
     display: grid;

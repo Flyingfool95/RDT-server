@@ -1,0 +1,18 @@
+nav {
+    background-color: lightcoral;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+
+    padding: 1rem;
+
+    a {
+        text-decoration: none;
+        color: #222;
+        font-weight: bold;
+    }
+
+    .active {
+        border-bottom: 2px solid #222;
+    }
+}
