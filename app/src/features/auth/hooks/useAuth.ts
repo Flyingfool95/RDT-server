@@ -1,10 +1,12 @@
+import { IUser } from "../../../../../shared/types/auth";
+import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
+
 import { loginSchema } from "../../../../../shared/zod/auth";
 import { validateInputData } from "../../../../../shared/helpers/auth";
-import useNotificationStore from "../../notifications/store/useNotificationStore";
-import { IUser } from "../../../../../shared/types/auth";
+
 import useAuthStore from "../store/useAuthStore";
-import { useNavigate } from "react-router-dom";
+import useNotificationStore from "../../notifications/store/useNotificationStore";
 
 export default function useAuth() {
     const { addNotification } = useNotificationStore((state) => state);
@@ -57,7 +59,7 @@ export default function useAuth() {
     async function logoutUser() {
         //Clear httpcookie
         setUser(null);
-        addNotification({ message: "Logged out", type: "warning", duration: 5000 });
+        addNotification({ message: "Logged out", type: "info", duration: 5000 });
     }
     async function deleteUser() {
         // Delete user
