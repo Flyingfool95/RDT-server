@@ -18,10 +18,11 @@
     ###   a. Login
        b. Register
        c. Reset password
-       d. Dashboard
+    ###   d. Dashboard
+    ###   e. Profile
 
     - Layouts
-       a. RouteGuard
+    ###   a. RouteGuard
     
     - Hooks
         a. useAuth
