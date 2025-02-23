@@ -1,13 +1,27 @@
+import { lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
-import Login from "./routes/auth/Login";
+
+import RouteGuard from "./features/auth/components/RouteGuard";
 import NotificationList from "./features/notifications/components/NotificationList";
+
+import Login from "./routes/auth/Login";
+
+const Dashboard = lazy(() => import("./routes/protected/Dashboard"));
 
 function App() {
     return (
         <>
             <Routes>
-                <Route path="/login" element={<Login />} />
+                {/* Public Routes */}
+                <Route element={<RouteGuard isProtected={false} />}>
+                    <Route path="/login" element={<Login />} />
+                </Route>
+
+                {/* Protected Routes */}
+                <Route element={<RouteGuard isProtected={true} />}>
+                    <Route path="/" element={<Dashboard />} />
+                </Route>
             </Routes>
             <NotificationList />
         </>

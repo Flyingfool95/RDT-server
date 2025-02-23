@@ -15,25 +15,25 @@ export default function LoginForm() {
         loginUser.mutate({ email, password });
     };
 
-    if (loginUser.isPending) {
-        return <div>Loading...</div>;
-    }
-
     return (
-        <form onSubmit={handleSubmit}>
-            <label htmlFor="email">Email</label>
-            <input type="email" name="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <>
+            <form onSubmit={handleSubmit}>
+                <label htmlFor="email">Email</label>
+                <input type="email" name="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
 
-            <label htmlFor="password">Password</label>
-            <input
-                type="password"
-                name="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
+                <label htmlFor="password">Password</label>
+                <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
 
-            <input type="submit" value="Login" />
-        </form>
+                <input type="submit" value="Login" />
+            </form>
+
+            {loginUser.isPending && <h1>Loging in...</h1>}
+        </>
     );
 }

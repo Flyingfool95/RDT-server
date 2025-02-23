@@ -1,6 +1,6 @@
 import "../style/notifications.css";
 import useNotificationStore from "../store/useNotificationStore";
-import { INotificationStore } from "../types";
+import { INotificationStore } from "../../../../../shared/types/notifications";
 
 export default function NotificationList() {
     const { notifications, removeNotification } = useNotificationStore((state: INotificationStore) => state);
