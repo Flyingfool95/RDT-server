@@ -1,0 +1,19 @@
+h1 {
+    color: hotpink !important;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+
+    max-width: 400px;
+    width: 100%;
+
+    label {
+        font-size: 14px;
+    }
+
+    input:not(:last-of-type) {
+        margin-bottom: 1rem;
+    }
+}

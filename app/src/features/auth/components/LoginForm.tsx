@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../styles/LoginForm.css"
 import useAuth from "../hooks/useAuth";
 
 export default function LoginForm() {
