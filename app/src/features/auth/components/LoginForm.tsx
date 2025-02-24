@@ -1,18 +1,16 @@
-import { useState } from "react";
 import "../styles/LoginForm.css"
+import { useState } from "react";
 import useAuth from "../hooks/useAuth";
 
 export default function LoginForm() {
     const { loginUser } = useAuth();
 
-    // State to store form inputs
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // Call mutate with email & password from state
         loginUser.mutate({ email, password });
     };
 

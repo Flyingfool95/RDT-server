@@ -2,7 +2,7 @@ import { IUser } from "../../../../../shared/types/auth";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
-import { loginSchema } from "../../../../../shared/zod/auth";
+import { loginSchema, registerSchema } from "../../../../../shared/zod/auth";
 import { validateInputData } from "../../../../../shared/helpers/auth";
 
 import useAuthStore from "../store/useAuthStore";
@@ -14,9 +14,46 @@ export default function useAuth() {
 
     const navigate = useNavigate();
 
-    async function registerUser() {
-        // Register logic
-    }
+    const registerUser = useMutation({
+        mutationFn: async ({
+            email,
+            password,
+            confirmPassword,
+        }: {
+            email: string;
+            password: string;
+            confirmPassword: string;
+        }) => {
+            const result = validateInputData(registerSchema, { email, password, confirmPassword });
+
+            /* Simulated API response */
+            const response = {
+                status: 201,
+                data: {
+                    id: "123abc",
+                    email: "johannes@hernehult.com",
+                    roles: ["admin"],
+                },
+            };
+
+            if (response.status >= 400) {
+                throw new Error(`Something went wrong. Error code: ${response.status}`);
+            }
+
+            addNotification({ message: "Registered user", type: "success", duration: 5000 });
+
+            return response.data;
+        },
+        onSuccess: (data: IUser) => {
+            console.log(data);
+            // Redirect to dashboard
+
+            navigate("/login");
+        },
+        onError: (error) => {
+            addNotification({ message: error.message, type: "error", duration: 7000 });
+        },
+    });
 
     const loginUser = useMutation({
         mutationFn: async ({ email, password }: { email: string; password: string }) => {
