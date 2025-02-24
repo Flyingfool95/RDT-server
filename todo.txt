@@ -30,6 +30,7 @@
            - Register
            - Login
            - Logout
+           - Refresh token
 
 # 2. Create server core
     - Look into
