@@ -40,14 +40,12 @@ export default function useAuth() {
                 throw new Error(`Something went wrong. Error code: ${response.status}`);
             }
 
-            addNotification({ message: "Registered user", type: "success", duration: 5000 });
+            addNotification({ message: "User registered", type: "success", duration: 5000 });
 
             return response.data;
         },
         onSuccess: (data: IUser) => {
             console.log(data);
-            // Redirect to dashboard
-
             navigate("/login");
         },
         onError: (error) => {
