@@ -1,7 +1,7 @@
 # 1. Create app core
 - Look into
         a. Testing
-        b. .env load shared root file
+    ###    b. .env load shared root file
         c. Documentation
             - Packages used
             - Tech stack
@@ -13,6 +13,7 @@
     ###   a. Zustand
     ###   b. React Router Dom
     ###   c. React Query (Tanstack Query)
+          d. Vitest
 
     - Routes
     ###   a. Login

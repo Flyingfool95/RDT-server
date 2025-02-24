@@ -1,17 +1,17 @@
-import "../styles/LoginForm.css"
 import { useState } from "react";
 import useAuth from "../hooks/useAuth";
 
-export default function LoginForm() {
-    const { loginUser } = useAuth();
+export default function RegisterForm() {
+    const { registerUser } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        loginUser.mutate({ email, password });
+        registerUser.mutate({ email, password, confirmPassword });
     };
 
     return (
@@ -28,11 +28,17 @@ export default function LoginForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
+                <label htmlFor="confirm-password">Password</label>
+                <input
+                    type="password"
+                    name="confirm-password"
+                    id="confirm-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                />
 
-                <input type="submit" value="Login" />
+                <input type="submit" value="Register" />
             </form>
-
-            {loginUser.isPending && <h1>Loging in...</h1>}
         </>
     );
 }
