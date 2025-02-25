@@ -1,12 +1,10 @@
-import { Application, Router } from "jsr:@oak/oak";
+import { Application } from "jsr:@oak/oak";
 import { corsMiddleware } from "./middlewares/cors.middleware.ts";
+import router from "./routes/main.router.ts";
 
 const app = new Application();
-const router = new Router();
 
 app.use(corsMiddleware);
-router.get("/api", (ctx) => {
-    ctx.response.body = "Hello World!";
-});
+app.use(router.routes());
 
 await app.listen({ port: 8000 });
