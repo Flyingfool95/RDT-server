@@ -12,7 +12,7 @@ export function sendResponse(ctx: Context, status: number, data: unknown = null,
     };
 }
 
-export function sanitizeData(data: unknown): unknown {
+export function sanitizeStrings(data: unknown): unknown {
     if (typeof data === "string") {
         return xss(data);
     }

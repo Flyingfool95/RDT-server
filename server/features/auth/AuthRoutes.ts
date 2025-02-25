@@ -1,5 +1,5 @@
 import { Context, Router } from "jsr:@oak/oak";
-import { sanitizeData, sendResponse, validateData } from "../shared/helpers.ts";
+import { sanitizeStrings, sendResponse, validateData } from "../shared/helpers.ts";
 import { loginSchema } from "../../../shared/zod/auth.js";
 
 const authRoutes = new Router();
@@ -7,7 +7,7 @@ const authRoutes = new Router();
 authRoutes.post("/login", async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const validatedBody = validateData(loginSchema, body);
-    const sanitizedBody = sanitizeData(validatedBody);
+    const sanitizedBody = sanitizeStrings(validatedBody);
     console.log(sanitizedBody);
 
     //Check against db with sanitizedBody using parameterized queries
