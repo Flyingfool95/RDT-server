@@ -7,7 +7,7 @@ const authRoutes = new Router();
 authRoutes.post("/login", async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const validatedBody = validateData(loginSchema, body);
-    const sanitizedBody = sanitizeData(validatedBody)
+    const sanitizedBody = sanitizeData(validatedBody);
     console.log(sanitizedBody);
 
     //Check against db with sanitizedBody using parameterized queries
