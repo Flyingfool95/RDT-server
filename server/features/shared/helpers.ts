@@ -12,7 +12,27 @@ export function sendResponse(ctx: Context, status: number, data: unknown = null,
     };
 }
 
-export function sanitizeString(data: unknown) {}
+export function sanitizeData(data: unknown): unknown {
+    if (typeof data === "string") {
+        return xss(data);
+    }
+
+    if (data && typeof data === "object") {
+        const sanitizedObject: Record<string, unknown> = {};
+
+        for (const key in data) {
+            if (Object.hasOwnProperty.call(data, key)) {
+                const value = (data as Record<string, unknown>)[key];
+
+                sanitizedObject[key] = typeof value === "string" ? xss(value) : value;
+            }
+        }
+
+        return sanitizedObject;
+    }
+
+    return data;
+}
 
 export function validateData<T>(zodSchema: ZodType<T>, data: unknown) {
     try {
