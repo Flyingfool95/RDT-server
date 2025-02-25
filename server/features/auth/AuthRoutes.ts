@@ -1,11 +1,13 @@
 import { Context, Router } from "jsr:@oak/oak";
-import { sendResponse } from "../shared/helpers.ts";
+import { sendResponse, validateData } from "../shared/helpers.ts";
+import { loginSchema } from "../../../shared/zod/auth.js";
 
 const authRoutes = new Router();
 
 authRoutes.post("/login", async (ctx: Context) => {
-    console.log(await ctx.request.body.json());
-
+    const body = await ctx.request.body.json();
+    const validatedBody = validateData(loginSchema, body);
+    console.log(validatedBody);
     sendResponse(ctx, 200, "Login");
 });
 
