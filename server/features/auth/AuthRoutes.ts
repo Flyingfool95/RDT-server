@@ -11,7 +11,9 @@ authRoutes.post("/login", async (ctx: Context) => {
     console.log(sanitizedBody);
 
     //Check against db with sanitizedBody using parameterized queries
+    //Generate JWT access and refresh tokens and set in httponly secure cookies
 
+    //Return user data (id, email, roles etc in response)
     sendResponse(ctx, 200, "Login");
 });
 
