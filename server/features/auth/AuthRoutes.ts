@@ -15,7 +15,7 @@ authRoutes.post("/login", async (ctx: Context) => {
 
     //Return user data from jwt generated from db data (id, email, roles etc in response)
 
-    sendResponse(ctx, 200, { email: sanitizedBody.email });
+    sendResponse(ctx, 200, { message: "Login" });
 });
 
 authRoutes.post("/register", (ctx: Context) => {
