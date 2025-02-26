@@ -4,11 +4,13 @@ const db = new DB("./db/database.db");
 
 db.execute(`
   CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
+    id TEXT PRIMARY KEY NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
     name TEXT,
-    email TEXT,
-    image TEXT
-  )
+    image TEXT,
+    role TEXT,  
+    password TEXT NOT NULL
+    )
 `);
 
 function closeDb() {

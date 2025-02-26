@@ -2,23 +2,48 @@ import { Context, Router } from "jsr:@oak/oak";
 import { sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
 import { loginSchema } from "../../../shared/zod/auth.js";
 import { IUser } from "../../../shared/types/auth.ts";
+import db from "../../db/db.ts";
 
 const authRoutes = new Router();
 
 authRoutes.post("/login", async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const validatedBody = validateData(loginSchema, body);
-    const sanitizedBody = sanitizeStrings(validatedBody);
+    const sanitizedBody = sanitizeStrings(validatedBody) as { email: string; password: string };
 
-    //Check against db with sanitizedBody using parameterized queries
+    //Check against db with sanitizedBody using parameterized queries if email and hashed password is match
+    const results = db.query(`SELECT id, email, name, image, role FROM users WHERE email = ?`, [sanitizedBody.email]);
+
+    const data = {
+        id: results[0][0],
+        email: results[0][1],
+        name: results[0][2],
+        image: results[0][3],
+        role: results[0][4],
+    };
+    
+    console.log(data);
+
     //Generate JWT access and refresh tokens and set in httponly secure cookies
 
-    //Return user data from jwt generated from db data (id, email, roles etc in response)
-
-    sendResponse(ctx, 200, { message: "Login" });
+    sendResponse(ctx, 200, data);
 });
 
 authRoutes.post("/register", (ctx: Context) => {
+    const id = crypto.randomUUID();
+    const email = "Jhernehult@gmail.com";
+    const password = "123123123";
+    const results = db.query("INSERT INTO users (id, email, name, image, role, password) VALUES (?, ?, ?, ?, ?, ?)", [
+        id,
+        email,
+        "",
+        "",
+        "user",
+        password,
+    ]);
+
+    console.log(results);
+
     sendResponse(ctx, 200, "Register");
 });
 
