@@ -1,6 +1,6 @@
 import { Context, Next } from "jsr:@oak/oak";
-import { HttpError } from "../features/shared/classes.ts";
-import { sendResponse } from "../features/shared/helpers.ts";
+import { HttpError } from "../features/utils/classes.ts";
+import { sendResponse } from "../features/utils/helpers.ts";
 
 export async function errorHandler(ctx: Context, next: Next) {
     try {

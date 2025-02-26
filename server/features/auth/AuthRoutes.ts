@@ -1,5 +1,5 @@
 import { Context, Router } from "jsr:@oak/oak";
-import { sanitizeStrings, sendResponse, validateData } from "../shared/helpers.ts";
+import { sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
 import { loginSchema } from "../../../shared/zod/auth.js";
 
 const authRoutes = new Router();
