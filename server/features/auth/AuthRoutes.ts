@@ -12,7 +12,7 @@ authRoutes.post("/login", async (ctx: Context) => {
     const validatedBody = validateData(loginSchema, body);
     const sanitizedBody = sanitizeStrings(validatedBody) as { email: string; password: string };
 
-    //TODO Fined based on hashed password and email
+    //TODO Find based on hashed password and email
     const results = db.query(`SELECT id, email, name, image, role FROM users WHERE email = ?`, [sanitizedBody.email]);
 
     if (!results.length) throw new HttpError(401, "Login failed", ["Email or password is incorrect"]);
