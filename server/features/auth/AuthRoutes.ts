@@ -15,7 +15,7 @@ authRoutes.post("/login", async (ctx: Context) => {
     //TODO Fined based on hashed password and email
     const results = db.query(`SELECT id, email, name, image, role FROM users WHERE email = ?`, [sanitizedBody.email]);
 
-    if (!results.length) throw new HttpError(404, "User not found", ["No user with those credentials"]);
+    if (!results.length) throw new HttpError(401, "Login failed", ["Email or password is incorrect"]);
 
     const data = {
         id: results[0][0],
