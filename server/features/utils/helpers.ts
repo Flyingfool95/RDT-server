@@ -13,7 +13,6 @@ export function sendResponse(ctx: Context, status: number, data: unknown = null,
 }
 
 export function sanitizeStrings(data: unknown): unknown {
-
     if (typeof data === "string") {
         return xss(data);
     }
@@ -49,4 +48,10 @@ export function validateData<T>(zodSchema: ZodType<T>, data: unknown) {
             throw new Error(error instanceof Error ? error.message : "Unknown error");
         }
     }
+}
+
+export function generateSalt(length: number): Uint8Array {
+    const salt = new Uint8Array(length);
+    crypto.getRandomValues(salt);
+    return salt;
 }

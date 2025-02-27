@@ -1,5 +1,6 @@
 import { Context, Router } from "jsr:@oak/oak";
-import { sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
+import { hash, verify } from "jsr:@felix/argon2";
+import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
 import { loginSchema, registerSchema } from "../../../shared/zod/auth.js";
 import { IUser } from "../../../shared/types/auth.ts";
 import db from "../../db/db.ts";
@@ -12,10 +13,15 @@ authRoutes.post("/login", async (ctx: Context) => {
     const validatedBody = validateData(loginSchema, body);
     const sanitizedBody = sanitizeStrings(validatedBody) as { email: string; password: string };
 
-    //TODO Find based on email and hashed password
-    const results = db.query(`SELECT id, email, name, image, role FROM users WHERE email = ?`, [sanitizedBody.email]);
+    const results = db.query(`SELECT id, email, name, image, role, password FROM users WHERE email = ?`, [
+        sanitizedBody.email,
+    ]);
 
-    if (!results.length) throw new HttpError(401, "Login failed", ["Email or password is incorrect"]);
+    if (!results.length) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
+
+    const isMatch = await verify(results[0][5] as string, sanitizedBody.password);
+
+    if (!isMatch) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
 
     const data = {
         id: results[0][0],
@@ -24,8 +30,6 @@ authRoutes.post("/login", async (ctx: Context) => {
         image: results[0][3],
         role: results[0][4],
     };
-
-    console.log(data);
 
     //Generate JWT access and refresh tokens and set in httponly secure cookies
 
@@ -41,9 +45,14 @@ authRoutes.post("/register", async (ctx: Context) => {
         password: string;
         confirmPassword: string;
     };
+
     const id = crypto.randomUUID();
 
-    //Hash password before adding to db
+    const salt = generateSalt(24);
+
+    const hashedPassword = await hash(sanitizedBody.password, {
+        salt,
+    });
 
     db.query("INSERT INTO users (id, email, name, image, role, password) VALUES (?, ?, ?, ?, ?, ?)", [
         id,
@@ -51,7 +60,7 @@ authRoutes.post("/register", async (ctx: Context) => {
         "",
         "",
         "user",
-        sanitizedBody.password,
+        hashedPassword,
     ]);
 
     sendResponse(ctx, 201, "Register");
