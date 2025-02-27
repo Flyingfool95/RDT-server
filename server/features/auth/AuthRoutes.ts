@@ -1,9 +1,8 @@
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
+import db from "../../db/db.ts";
 import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
 import { loginSchema, registerSchema } from "../../../shared/zod/auth.js";
-import { IUser } from "../../../shared/types/auth.ts";
-import db from "../../db/db.ts";
 import { HttpError } from "../utils/classes.ts";
 
 const authRoutes = new Router();
@@ -16,11 +15,9 @@ authRoutes.post("/login", async (ctx: Context) => {
     const results = db.query(`SELECT id, email, name, image, role, password FROM users WHERE email = ?`, [
         sanitizedBody.email,
     ]);
-
     if (!results.length) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
 
     const isMatch = await verify(results[0][5] as string, sanitizedBody.password);
-
     if (!isMatch) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
 
     const data = {
@@ -47,9 +44,7 @@ authRoutes.post("/register", async (ctx: Context) => {
     };
 
     const id = crypto.randomUUID();
-
     const salt = generateSalt(24);
-
     const hashedPassword = await hash(sanitizedBody.password, {
         salt,
     });
