@@ -26,7 +26,7 @@ authRoutes.post("/login", async (ctx: Context) => {
     };
 
     console.log(data);
-    
+
     //Generate JWT access and refresh tokens and set in httponly secure cookies
 
     sendResponse(ctx, 200, data);
@@ -54,7 +54,7 @@ authRoutes.post("/register", async (ctx: Context) => {
         sanitizedBody.password,
     ]);
 
-    sendResponse(ctx, 200, "Register");
+    sendResponse(ctx, 201, "Register");
 });
 
 authRoutes.post("/update", (ctx: Context) => {
