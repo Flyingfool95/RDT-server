@@ -66,6 +66,11 @@ authRoutes.patch("/update", (ctx: Context) => {
 });
 
 authRoutes.delete("/delete", (ctx: Context) => {
+    //Check if token is valid
+    //Extract email or id from token
+    //Find user with that email or id
+    //Delete user from _USER table
+    
     sendResponse(ctx, 200, "Delete");
 });
 
