@@ -61,16 +61,16 @@ authRoutes.post("/register", async (ctx: Context) => {
     sendResponse(ctx, 201, "Register");
 });
 
-authRoutes.post("/update", (ctx: Context) => {
+authRoutes.patch("/update", (ctx: Context) => {
     sendResponse(ctx, 200, "Update");
 });
 
-authRoutes.post("/delete", (ctx: Context) => {
+authRoutes.delete("/delete", (ctx: Context) => {
     sendResponse(ctx, 200, "Delete");
 });
 
-authRoutes.get("/whoami", (ctx: Context) => {
-    sendResponse(ctx, 200, "You are you!");
+authRoutes.get("/refresh", (ctx: Context) => {
+    sendResponse(ctx, 200, "Token refreshed!");
 });
 
 export default authRoutes;
