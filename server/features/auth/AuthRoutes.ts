@@ -1,9 +1,12 @@
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
+import { setCookie } from "jsr:@std/http/cookie";
+
 import db from "../../db/db.ts";
 import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
 import { loginSchema, registerSchema } from "../../../shared/zod/auth.js";
 import { HttpError } from "../utils/classes.ts";
+import { generateJWT } from "../utils/jwt.ts";
 
 const authRoutes = new Router();
 
@@ -28,9 +31,20 @@ authRoutes.post("/login", async (ctx: Context) => {
         role: results[0][4],
     };
 
-    //Generate JWT access and refresh tokens and set in httponly secure cookies
+    const accessToken = await generateJWT(data, 900);
+    const refreshToken = await generateJWT(data, 604800);
 
-    sendResponse(ctx, 200, data);
+    setCookie(ctx.response.headers, {
+        name: "refresh_token",
+        value: refreshToken,
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        path: "/",
+        maxAge: 604800,
+    });
+
+    sendResponse(ctx, 200, { accessToken, data });
 });
 
 authRoutes.post("/register", async (ctx: Context) => {
@@ -70,7 +84,7 @@ authRoutes.delete("/delete", (ctx: Context) => {
     //Extract email or id from token
     //Find user with that email or id
     //Delete user from _USER table
-    
+
     sendResponse(ctx, 200, "Delete");
 });
 
