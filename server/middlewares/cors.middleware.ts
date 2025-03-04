@@ -1,23 +1,29 @@
 import { Context, Middleware } from "jsr:@oak/oak";
 
-// CORS Middleware Function
 const corsMiddleware: Middleware = async (ctx: Context, next) => {
-    // Allow all origins or customize it to restrict specific origins
-    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+    const origin = ctx.request.headers.get("Origin") || "*"; // Get the request origin
 
-    // Allow specific HTTP methods
+    // Allow only specific frontend origin (Replace with your actual frontend URL)
+    ctx.response.headers.set("Access-Control-Allow-Origin", origin);
+
+    // Allow credentials (if using authentication headers like Authorization)
+    ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
+
+    // Allow HTTP methods
     ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
 
-    // Allow specific headers, or set a wildcard for all headers
+    // Allow specific headers
     ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    // Inform browser that response headers can be exposed
+    ctx.response.headers.set("Access-Control-Expose-Headers", "Content-Type, Authorization");
 
     // Handle preflight OPTIONS request
     if (ctx.request.method === "OPTIONS") {
-        ctx.response.status = 200;
-        return; // Return early for OPTIONS requests
+        ctx.response.status = 204; // 204 No Content is better for preflight
+        return;
     }
 
-    // Continue to the next middleware or route handler
     await next();
 };
 

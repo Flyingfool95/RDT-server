@@ -26,15 +26,15 @@ export default function useAuth() {
         }) => {
             const result = validateInputData(registerSchema, { email, password, confirmPassword });
 
-            /* Simulated API response */
-            const response = {
-                status: 201,
-                data: {
-                    id: "123abc",
-                    email: "johannes@hernehult.com",
-                    roles: ["admin"],
+            const response = await fetch("http://localhost:8000/api/v1/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
                 },
-            };
+                body: JSON.stringify(result),
+            });
+
+            console.log(await response.json())
 
             if (response.status >= 400) {
                 throw new Error(`Something went wrong. Error code: ${response.status}`);
