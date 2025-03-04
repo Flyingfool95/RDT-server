@@ -2,7 +2,7 @@ import { IUser } from "../../../../../shared/types/auth";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
-import { loginSchema, registerSchema } from "../../../../../shared/zod/auth";
+import { loginSchema, registerSchema } from "../../../../../shared/zod/auth.ts";
 import { validateInputData } from "../../../../../shared/helpers/auth";
 
 import useAuthStore from "../store/useAuthStore";
@@ -34,15 +34,17 @@ export default function useAuth() {
                 body: JSON.stringify(result),
             });
 
-            console.log(await response.json())
-
             if (response.status >= 400) {
                 throw new Error(`Something went wrong. Error code: ${response.status}`);
             }
 
+            const data = response.json();
+
+            console.log(data);
+
             addNotification({ message: "User registered", type: "success", duration: 5000 });
 
-            return response.data;
+            return data;
         },
         onSuccess: (data: IUser) => {
             console.log(data);
