@@ -4,7 +4,7 @@ import { setCookie } from "jsr:@std/http/cookie";
 
 import db from "../../db/db.ts";
 import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
-import { loginSchema, registerSchema } from "../../../shared/zod/auth.ts";
+import { loginSchema, registerSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT } from "../utils/jwt.ts";
 
