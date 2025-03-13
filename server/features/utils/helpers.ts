@@ -1,5 +1,5 @@
 import { Context } from "jsr:@oak/oak";
-import { ZodType, ZodError } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+import { ZodError, ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import xss from "npm:xss";
 import { HttpError } from "./classes.ts";
 
@@ -34,7 +34,7 @@ export function sanitizeStrings(data: unknown): unknown {
     return data;
 }
 
-export function validateData<T>(zodSchema: ZodType<T>, data: unknown) {
+export function validateData<T>(zodSchema: ZodSchema, data: unknown): T {
     try {
         return zodSchema.parse(data);
     } catch (error) {
