@@ -1,8 +1,6 @@
+import db from "../../db/db.ts";
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
-import { setCookie } from "jsr:@std/http/cookie";
-
-import db from "../../db/db.ts";
 import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
 import { loginSchema, registerSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
@@ -37,23 +35,20 @@ authRoutes.post("/login", async (ctx: Context) => {
     const refreshToken = await generateJWT(data, REFRESH_TOKEN_EXP);
     const accessToken = await generateJWT(data, ACCESS_TOKEN_EXP);
 
-    setCookie(ctx.response.headers, {
-        name: "refresh_token",
-        value: refreshToken,
+    ctx.cookies.set("refresh_token", refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
+        secure: Deno.env.get("DENO_ENV") === "production",
+        sameSite: "strict",
         path: "/",
-        maxAge: REFRESH_TOKEN_EXP,
+        maxAge: REFRESH_TOKEN_EXP * 1000,
     });
-    setCookie(ctx.response.headers, {
-        name: "access_token",
-        value: accessToken,
+
+    ctx.cookies.set("access_token", accessToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
+        secure: Deno.env.get("DENO_ENV") === "production",
+        sameSite: "strict",
         path: "/",
-        maxAge: ACCESS_TOKEN_EXP,
+        maxAge: ACCESS_TOKEN_EXP * 1000,
     });
 
     sendResponse(ctx, 200, { data });
@@ -92,21 +87,17 @@ authRoutes.patch("/update", (ctx: Context) => {
 });
 
 authRoutes.get("/logout", (ctx: Context) => {
-    setCookie(ctx.response.headers, {
-        name: "refresh_token",
-        value: "",
+    ctx.cookies.set("refresh_token", "", {
         httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
+        secure: Deno.env.get("DENO_ENV") === "production",
+        sameSite: "strict",
         path: "/",
         maxAge: 0,
     });
-    setCookie(ctx.response.headers, {
-        name: "access_token",
-        value: "",
+    ctx.cookies.set("access_token", "", {
         httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
+        secure: Deno.env.get("DENO_ENV") === "production",
+        sameSite: "strict",
         path: "/",
         maxAge: 0,
     });
@@ -127,6 +118,7 @@ authRoutes.delete("/delete", (ctx: Context) => {
 
 authRoutes.get("/auth-check", async (ctx: Context) => {
     const currentTime = Math.floor(Date.now() / 1000);
+
     const accessToken = await ctx.cookies.get("access_token");
     const refreshToken = await ctx.cookies.get("refresh_token");
 
@@ -141,24 +133,21 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
     };
 
     if (!verifiedRefreshToken) {
-        setCookie(ctx.response.headers, {
-            name: "refresh_token",
-            value: "",
+        ctx.cookies.set("refresh_token", "", {
             httpOnly: true,
-            secure: true,
-            sameSite: "Strict",
+            secure: Deno.env.get("DENO_ENV") === "production",
+            sameSite: "strict",
             path: "/",
             maxAge: 0,
         });
-        setCookie(ctx.response.headers, {
-            name: "access_token",
-            value: "",
+        ctx.cookies.set("refresh_token", "", {
             httpOnly: true,
-            secure: true,
-            sameSite: "Strict",
+            secure: Deno.env.get("DENO_ENV") === "production",
+            sameSite: "strict",
             path: "/",
             maxAge: 0,
         });
+
         throw new HttpError(401, "Expired token", ["Refresh token expired"]);
     }
 
@@ -183,24 +172,20 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
             ACCESS_TOKEN_EXP
         );
 
-        setCookie(ctx.response.headers, {
-            name: "refresh_token",
-            value: newRefreshToken,
+        ctx.cookies.set("refresh_token", newRefreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: "Strict",
+            secure: Deno.env.get("DENO_ENV") === "production",
+            sameSite: "strict",
             path: "/",
-            maxAge: REFRESH_TOKEN_EXP,
+            maxAge: REFRESH_TOKEN_EXP * 1000,
         });
 
-        setCookie(ctx.response.headers, {
-            name: "access_token",
-            value: newAccessToken,
+        ctx.cookies.set("access_token", newAccessToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: "Strict",
+            secure: Deno.env.get("DENO_ENV") === "production",
+            sameSite: "strict",
             path: "/",
-            maxAge: ACCESS_TOKEN_EXP,
+            maxAge: ACCESS_TOKEN_EXP * 1000,
         });
 
         //Black list refresh token
