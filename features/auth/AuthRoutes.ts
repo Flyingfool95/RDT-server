@@ -10,7 +10,7 @@ import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 
 const authRoutes = new Router();
 
-const REFRESH_TOKEN_EXP = 604800;
+const REFRESH_TOKEN_EXP = 432000;
 const ACCESS_TOKEN_EXP = 900;
 
 authRoutes.post("/login", async (ctx: Context) => {
