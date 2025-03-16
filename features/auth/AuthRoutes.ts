@@ -87,22 +87,8 @@ authRoutes.patch("/update", (ctx: Context) => {
 });
 
 authRoutes.get("/logout", (ctx: Context) => {
-    ctx.cookies.set("refresh_token", "", {
-        httpOnly: true,
-        secure: Deno.env.get("DENO_ENV") === "production",
-        sameSite: "strict",
-        path: "/",
-        maxAge: 0,
-    });
-    ctx.cookies.set("access_token", "", {
-        httpOnly: true,
-        secure: Deno.env.get("DENO_ENV") === "production",
-        sameSite: "strict",
-        path: "/",
-        maxAge: 0,
-    });
-
-    console.log("deleting cookies");
+    ctx.cookies.delete("refresh_token");
+    ctx.cookies.delete("access_token");
 
     sendResponse(ctx, 200, "Logged out");
 });
@@ -133,20 +119,8 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
     };
 
     if (!verifiedRefreshToken) {
-        ctx.cookies.set("refresh_token", "", {
-            httpOnly: true,
-            secure: Deno.env.get("DENO_ENV") === "production",
-            sameSite: "strict",
-            path: "/",
-            maxAge: 0,
-        });
-        ctx.cookies.set("refresh_token", "", {
-            httpOnly: true,
-            secure: Deno.env.get("DENO_ENV") === "production",
-            sameSite: "strict",
-            path: "/",
-            maxAge: 0,
-        });
+        ctx.cookies.delete("refresh_token");
+        ctx.cookies.delete("access_token");
 
         throw new HttpError(401, "Expired token", ["Refresh token expired"]);
     }
