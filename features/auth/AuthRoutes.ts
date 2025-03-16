@@ -1,19 +1,19 @@
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
-import { setCookie } from "jsr:@std/http/cookie";
+import { setCookie, getCookies } from "jsr:@std/http/cookie";
 
 import db from "../../db/db.ts";
 import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
 import { loginSchema, registerSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
-import { generateJWT } from "../utils/jwt.ts";
+import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 
 const authRoutes = new Router();
 
 authRoutes.post("/login", async (ctx: Context) => {
     const body = await ctx.request.body.json();
-    const validatedBody = validateData(loginSchema, body);
-    const sanitizedBody = sanitizeStrings(validatedBody) as { email: string; password: string };
+    const verifiedBody = validateData(loginSchema, body);
+    const sanitizedBody = sanitizeStrings(verifiedBody) as { email: string; password: string };
 
     const results = db.query(`SELECT id, email, name, image, role, password FROM users WHERE email = ?`, [
         sanitizedBody.email,
@@ -43,15 +43,24 @@ authRoutes.post("/login", async (ctx: Context) => {
         path: "/",
         maxAge: 604800,
     });
+    setCookie(ctx.response.headers, {
+        name: "access_token",
+        value: accessToken,
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        path: "/",
+        maxAge: 10,
+    });
 
-    sendResponse(ctx, 200, { accessToken, data });
+    sendResponse(ctx, 200, { data });
 });
 
 authRoutes.post("/register", async (ctx: Context) => {
     const body = await ctx.request.body.json();
 
-    const validatedBody = validateData(registerSchema, body);
-    const sanitizedBody = sanitizeStrings(validatedBody) as {
+    const verifiedBody = validateData(registerSchema, body);
+    const sanitizedBody = sanitizeStrings(verifiedBody) as {
         email: string;
         password: string;
         confirmPassword: string;
@@ -88,8 +97,72 @@ authRoutes.delete("/delete", (ctx: Context) => {
     sendResponse(ctx, 200, "Delete");
 });
 
-authRoutes.get("/refresh", (ctx: Context) => {
-    sendResponse(ctx, 200, "Token refreshed!");
+authRoutes.get("/auth-check", async (ctx: Context) => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    const accessToken = await ctx.cookies.get("access_token");
+    const refreshToken = await ctx.cookies.get("refresh_token");
+
+    if (!refreshToken) return sendResponse(ctx, 401, "Missing refresh token, please login...");
+    if (!accessToken) {
+        const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {
+            id: string;
+            email: string;
+            name: string;
+            image: string;
+            exp: number;
+        };
+
+        if (!verifiedRefreshToken) {
+            throw new HttpError(401, "Expired token", ["Refresh token expired"]);
+        }
+
+        if (verifiedRefreshToken.exp > currentTime) {
+            const newAccessToken = await generateJWT(
+                {
+                    id: verifiedRefreshToken.id,
+                    email: verifiedRefreshToken.email,
+                    name: verifiedRefreshToken.name,
+                    image: verifiedRefreshToken.image,
+                },
+                900
+            );
+            const newRefreshToken = await generateJWT(
+                {
+                    id: verifiedRefreshToken.id,
+                    email: verifiedRefreshToken.email,
+                    name: verifiedRefreshToken.name,
+                    image: verifiedRefreshToken.image,
+                },
+                604800
+            );
+
+            setCookie(ctx.response.headers, {
+                name: "access_token",
+                value: newAccessToken,
+                httpOnly: true,
+                secure: true,
+                sameSite: "Strict",
+                path: "/",
+                maxAge: 900,
+            });
+
+            setCookie(ctx.response.headers, {
+                name: "refresh_token",
+                value: newRefreshToken,
+                httpOnly: true,
+                secure: true,
+                sameSite: "Strict",
+                path: "/",
+                maxAge: 604800,
+            });
+
+            //Black list refresh token
+
+            return sendResponse(ctx, 200, "Login user with refreshed access token...");
+        }
+    }
+
+    sendResponse(ctx, 200, "Login user...");
 });
 
 export default authRoutes;

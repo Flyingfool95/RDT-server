@@ -22,11 +22,11 @@ export async function generateJWT(payload: Record<string, unknown>, expiresIn: n
     return await create(header, fullPayload, key);
 }
 
-export async function validateJWT(token: string): Promise<Record<string, unknown>> {
+export async function verifyJWT(token: string): Promise<Record<string, unknown> | null> {
     try {
         return await verify(token, key);
     } catch (error) {
         console.log(error);
-        throw new HttpError(401, "Validation failed", ["Invalid or expired JWT"]);
+        return null;
     }
 }

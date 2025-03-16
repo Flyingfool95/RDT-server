@@ -1,6 +1,7 @@
 import { Context, Middleware } from "jsr:@oak/oak";
 
 const corsMiddleware: Middleware = async (ctx: Context, next) => {
+
     const origin = ctx.request.headers.get("Origin") || "*"; // Get the request origin
 
     // Allow only specific frontend origin (Replace with your actual frontend URL)
@@ -23,6 +24,8 @@ const corsMiddleware: Middleware = async (ctx: Context, next) => {
         ctx.response.status = 204; // 204 No Content is better for preflight
         return;
     }
+
+
 
     await next();
 };

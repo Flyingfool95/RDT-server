@@ -3,7 +3,3 @@ export interface IUser {
     email: string;
     roles: string[];
 }
-export interface IAuthStore {
-    user: IUser | null;
-    setUser: (newUser: IUser | null) => void;
-}
