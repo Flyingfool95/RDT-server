@@ -1,46 +1,11 @@
-# 1. Create app core
-- Look into
-        a. Testing
-    ###    b. .env load shared root file
-        c. Documentation
-            - Packages used
-            - Tech stack
-            - Error handeling
-            - Components
-            - Helper functions
-
-    -Install
-    ###   a. Zustand
-    ###   b. React Router Dom
-    ###   c. React Query (Tanstack Query)
-          d. Vitest
-
-    - Routes
-    ###   a. Login
-       b. Register
-       c. Reset password
-    ###   d. Dashboard
-    ###   e. Profile
-
-    - Layouts
-    ###   a. RouteGuard
-    
-    - Hooks
-        a. useAuth
-           - Register
-           - Login
-           - Logout
-           - Refresh token
-
-# 2. Create server core
+Create server core
     - Look into
         a. Logging
         b. Testing
         c. Security (CSRF, XSS etc)
         d. Email SMTP
         e. DB migration tools?
-        f. .env load shared root file
-        g. Documentation
+        f. Documentation
             - Packages used
             - Tech stack
             - Error handeling
@@ -62,7 +27,7 @@
         a. /auth
             - /login
             - /register
-            - /refresh
+            ### - /auth-check
             - /delete
             - /update
             - /show
