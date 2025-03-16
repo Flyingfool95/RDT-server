@@ -1,6 +1,6 @@
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
-import { setCookie, getCookies } from "jsr:@std/http/cookie";
+import { setCookie } from "jsr:@std/http/cookie";
 
 import db from "../../db/db.ts";
 import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
@@ -9,6 +9,9 @@ import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 
 const authRoutes = new Router();
+
+const REFRESH_TOKEN_EXP = 604800;
+const ACCESS_TOKEN_EXP = 900;
 
 authRoutes.post("/login", async (ctx: Context) => {
     const body = await ctx.request.body.json();
@@ -31,8 +34,8 @@ authRoutes.post("/login", async (ctx: Context) => {
         role: results[0][4],
     };
 
-    const accessToken = await generateJWT(data, 900);
-    const refreshToken = await generateJWT(data, 604800);
+    const refreshToken = await generateJWT(data, REFRESH_TOKEN_EXP);
+    const accessToken = await generateJWT(data, ACCESS_TOKEN_EXP);
 
     setCookie(ctx.response.headers, {
         name: "refresh_token",
@@ -41,7 +44,7 @@ authRoutes.post("/login", async (ctx: Context) => {
         secure: true,
         sameSite: "Strict",
         path: "/",
-        maxAge: 604800,
+        maxAge: REFRESH_TOKEN_EXP,
     });
     setCookie(ctx.response.headers, {
         name: "access_token",
@@ -50,7 +53,7 @@ authRoutes.post("/login", async (ctx: Context) => {
         secure: true,
         sameSite: "Strict",
         path: "/",
-        maxAge: 10,
+        maxAge: ACCESS_TOKEN_EXP,
     });
 
     sendResponse(ctx, 200, { data });
@@ -88,6 +91,31 @@ authRoutes.patch("/update", (ctx: Context) => {
     sendResponse(ctx, 200, "Update");
 });
 
+authRoutes.get("/logout", (ctx: Context) => {
+    setCookie(ctx.response.headers, {
+        name: "refresh_token",
+        value: "",
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        path: "/",
+        maxAge: 0,
+    });
+    setCookie(ctx.response.headers, {
+        name: "access_token",
+        value: "",
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        path: "/",
+        maxAge: 0,
+    });
+
+    console.log("deleting cookies");
+
+    sendResponse(ctx, 200, "Logged out");
+});
+
 authRoutes.delete("/delete", (ctx: Context) => {
     //Check if token is valid
     //Extract email or id from token
@@ -103,66 +131,84 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
     const refreshToken = await ctx.cookies.get("refresh_token");
 
     if (!refreshToken) return sendResponse(ctx, 401, "Missing refresh token, please login...");
-    if (!accessToken) {
-        const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {
-            id: string;
-            email: string;
-            name: string;
-            image: string;
-            exp: number;
-        };
 
-        if (!verifiedRefreshToken) {
-            throw new HttpError(401, "Expired token", ["Refresh token expired"]);
-        }
+    const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {
+        id: string;
+        email: string;
+        name: string;
+        image: string;
+        exp: number;
+    };
 
-        if (verifiedRefreshToken.exp > currentTime) {
-            const newAccessToken = await generateJWT(
-                {
-                    id: verifiedRefreshToken.id,
-                    email: verifiedRefreshToken.email,
-                    name: verifiedRefreshToken.name,
-                    image: verifiedRefreshToken.image,
-                },
-                900
-            );
-            const newRefreshToken = await generateJWT(
-                {
-                    id: verifiedRefreshToken.id,
-                    email: verifiedRefreshToken.email,
-                    name: verifiedRefreshToken.name,
-                    image: verifiedRefreshToken.image,
-                },
-                604800
-            );
-
-            setCookie(ctx.response.headers, {
-                name: "access_token",
-                value: newAccessToken,
-                httpOnly: true,
-                secure: true,
-                sameSite: "Strict",
-                path: "/",
-                maxAge: 900,
-            });
-
-            setCookie(ctx.response.headers, {
-                name: "refresh_token",
-                value: newRefreshToken,
-                httpOnly: true,
-                secure: true,
-                sameSite: "Strict",
-                path: "/",
-                maxAge: 604800,
-            });
-
-            //Black list refresh token
-
-            return sendResponse(ctx, 200, "Login user with refreshed access token...");
-        }
+    if (!verifiedRefreshToken) {
+        setCookie(ctx.response.headers, {
+            name: "refresh_token",
+            value: "",
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict",
+            path: "/",
+            maxAge: 0,
+        });
+        setCookie(ctx.response.headers, {
+            name: "access_token",
+            value: "",
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict",
+            path: "/",
+            maxAge: 0,
+        });
+        throw new HttpError(401, "Expired token", ["Refresh token expired"]);
     }
 
-    sendResponse(ctx, 200, "Login user...");
+    if (!accessToken && verifiedRefreshToken.exp > currentTime) {
+        const newRefreshToken = await generateJWT(
+            {
+                id: verifiedRefreshToken.id,
+                email: verifiedRefreshToken.email,
+                name: verifiedRefreshToken.name,
+                image: verifiedRefreshToken.image,
+            },
+            REFRESH_TOKEN_EXP
+        );
+
+        const newAccessToken = await generateJWT(
+            {
+                id: verifiedRefreshToken.id,
+                email: verifiedRefreshToken.email,
+                name: verifiedRefreshToken.name,
+                image: verifiedRefreshToken.image,
+            },
+            ACCESS_TOKEN_EXP
+        );
+
+        setCookie(ctx.response.headers, {
+            name: "refresh_token",
+            value: newRefreshToken,
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict",
+            path: "/",
+            maxAge: REFRESH_TOKEN_EXP,
+        });
+
+        setCookie(ctx.response.headers, {
+            name: "access_token",
+            value: newAccessToken,
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict",
+            path: "/",
+            maxAge: ACCESS_TOKEN_EXP,
+        });
+
+        //Black list refresh token
+
+        return sendResponse(ctx, 200, verifiedRefreshToken);
+    }
+
+    sendResponse(ctx, 200, verifiedRefreshToken);
 });
 
 export default authRoutes;
