@@ -81,13 +81,42 @@ authRoutes.get("/logout", (ctx: Context) => {
     sendResponse(ctx, 200, "Logged out");
 });
 
-authRoutes.delete("/delete", (ctx: Context) => {
+authRoutes.delete("/delete", async (ctx: Context) => {
     //Check if token is valid
-    //Extract  id from token
-    //Find user with that id
-    //Delete user from _USER table
+    const accessToken = await ctx.cookies.get("access_token");
 
-    sendResponse(ctx, 200, "Delete");
+    if (!accessToken) throw new HttpError(401, "Unauthorized delete", ["Missing access token"]);
+
+    //Extract  id from token
+    const verifiedAccessToken = (await verifyJWT(accessToken)) as {
+        id: string;
+        email: string;
+        name: string;
+        image: string;
+        exp: number;
+    };
+
+    if (!verifiedAccessToken) {
+        ctx.cookies.delete("refresh_token");
+        ctx.cookies.delete("access_token");
+
+        throw new HttpError(401, "Expired token", ["Access token expired"]);
+    }
+
+    // Check if user exists before deleting
+    const userExists = db.query(`SELECT * FROM users WHERE id = ?`, [verifiedAccessToken.id]);
+
+    if (!userExists || userExists.length === 0) {
+        throw new HttpError(404, "User not found", ["No user found with given ID"]);
+    }
+
+    //Delete user from _USER table
+    db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
+
+    ctx.cookies.delete("refresh_token");
+    ctx.cookies.delete("access_token");
+
+    sendResponse(ctx, 200, "User deleted successfully");
 });
 
 authRoutes.get("/auth-check", async (ctx: Context) => {
