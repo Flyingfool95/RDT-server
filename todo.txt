@@ -21,7 +21,7 @@ Create server core
 
     - Middleware
         a. rate-limit
-        b. CORS
+    ###    b. CORS
         c. auth check
 
     - Routes
