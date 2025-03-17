@@ -20,7 +20,7 @@ authRoutes.post("/login", async (ctx: Context) => {
     const results = db.query(`SELECT id, email, name, image, role, password FROM users WHERE email = ?`, [
         sanitizedBody.email,
     ]);
-    if (!results.length) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
+    if (!results.length) throw new HttpError(401, "Login failed", ["User doesn't exist"]);
 
     const isMatch = await verify(results[0][5] as string, sanitizedBody.password);
     if (!isMatch) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
