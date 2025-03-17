@@ -1,31 +1,23 @@
 import { Context, Middleware } from "jsr:@oak/oak";
 
+const allowedOrigin = "http://localhost:5173"; // Replace with your frontend URL
+
 const corsMiddleware: Middleware = async (ctx: Context, next) => {
+    const origin = ctx.request.headers.get("Origin");
 
-    const origin = ctx.request.headers.get("Origin") || "*"; // Get the request origin
-
-    // Allow only specific frontend origin (Replace with your actual frontend URL)
-    ctx.response.headers.set("Access-Control-Allow-Origin", origin);
-
-    // Allow credentials (if using authentication headers like Authorization)
-    ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
-
-    // Allow HTTP methods
-    ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-
-    // Allow specific headers
-    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-    // Inform browser that response headers can be exposed
-    ctx.response.headers.set("Access-Control-Expose-Headers", "Content-Type, Authorization");
+    if (origin === allowedOrigin) {
+        ctx.response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+        ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
+        ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        ctx.response.headers.set("Access-Control-Expose-Headers", "Content-Type, Authorization");
+    }
 
     // Handle preflight OPTIONS request
     if (ctx.request.method === "OPTIONS") {
-        ctx.response.status = 204; // 204 No Content is better for preflight
+        ctx.response.status = 204;
         return;
     }
-
-
 
     await next();
 };

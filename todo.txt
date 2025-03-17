@@ -5,7 +5,8 @@ Create server core
         c. Security (CSRF, XSS etc)
         d. Email SMTP
         e. DB migration tools?
-        f. Documentation
+        f. Re-organize folders to use core folder inside features
+        g. Documentation
             - Packages used
             - Tech stack
             - Error handeling
