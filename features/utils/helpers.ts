@@ -55,3 +55,23 @@ export function generateSalt(length: number): Uint8Array {
     crypto.getRandomValues(salt);
     return salt;
 }
+
+export function setCookie(ctx: Context, name: string, value: string, options: { maxAge?: number; secure?: boolean }) {
+    ctx.cookies.set(name, value, {
+        httpOnly: true,
+        secure: options.secure ?? Deno.env.get("DENO_ENV") === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: options.maxAge ? options.maxAge * 1000 : undefined,
+    });
+}
+
+export function validateInputData(schema: ZodSchema, data: unknown) {
+    const result = schema.safeParse(data);
+
+    if (!result.success) {
+        throw new Error(`${result.error.issues.map((err: any) => err.message).join(" and ")}`);
+    }
+
+    return result.data;
+}

@@ -5,7 +5,7 @@ import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../ut
 import { loginSchema, registerSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
-import { setCookie } from "../../helpers/auth.ts";
+import { setCookie } from "../utils/helpers.ts";
 
 const authRoutes = new Router();
 
