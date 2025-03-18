@@ -2,7 +2,7 @@ import db from "../../db/db.ts";
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
 import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
-import { loginSchema, registerSchema } from "../../zod/auth.ts";
+import { loginSchema, registerSchema, userSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 import { setCookie } from "../utils/helpers.ts";
@@ -12,6 +12,7 @@ const authRoutes = new Router();
 const REFRESH_TOKEN_EXP = 432000;
 const ACCESS_TOKEN_EXP = 900;
 
+/* AUTH LOGIN */
 authRoutes.post("/login", async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const verifiedBody = validateData(loginSchema, body);
@@ -42,6 +43,7 @@ authRoutes.post("/login", async (ctx: Context) => {
     sendResponse(ctx, 200, { data });
 });
 
+/* AUTH REGISTER */
 authRoutes.post("/register", async (ctx: Context) => {
     const body = await ctx.request.body.json();
 
@@ -58,10 +60,9 @@ authRoutes.post("/register", async (ctx: Context) => {
         salt,
     });
 
-    db.query("INSERT INTO users (id, email, name, image, role, password) VALUES (?, ?, ?, ?, ?, ?)", [
+    db.query("INSERT INTO users (id, email, name, role, password) VALUES (?, ?, ?, ?, ?)", [
         id,
         sanitizedBody.email,
-        "",
         "",
         "user",
         hashedPassword,
@@ -70,29 +71,16 @@ authRoutes.post("/register", async (ctx: Context) => {
     sendResponse(ctx, 201, "Register");
 });
 
-authRoutes.patch("/update", (ctx: Context) => {
-    sendResponse(ctx, 200, "Update");
-});
-
-authRoutes.get("/logout", (ctx: Context) => {
-    ctx.cookies.delete("refresh_token");
-    ctx.cookies.delete("access_token");
-
-    sendResponse(ctx, 200, "Logged out");
-});
-
-authRoutes.delete("/delete", async (ctx: Context) => {
-    //Check if token is valid
+/* AUTH UPDATE */
+authRoutes.put("/update", async (ctx: Context) => {
     const accessToken = await ctx.cookies.get("access_token");
+    if (!accessToken) throw new HttpError(401, "Unauthorized", ["Missing access token"]);
 
-    if (!accessToken) throw new HttpError(401, "Unauthorized delete", ["Missing access token"]);
-
-    //Extract  id from token
     const verifiedAccessToken = (await verifyJWT(accessToken)) as {
         id: string;
         email: string;
         name: string;
-        image: string;
+        role: string;
         exp: number;
     };
 
@@ -103,14 +91,70 @@ authRoutes.delete("/delete", async (ctx: Context) => {
         throw new HttpError(401, "Expired token", ["Access token expired"]);
     }
 
-    // Check if user exists before deleting
     const userExists = db.query(`SELECT * FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
     if (!userExists || userExists.length === 0) {
         throw new HttpError(404, "User not found", ["No user found with given ID"]);
     }
 
-    //Delete user from _USER table
+    const body = await ctx.request.body.json();
+
+    const verifiedBody = validateData(userSchema, body);
+
+    const sanitizedBody = sanitizeStrings(verifiedBody) as {
+        id?: string;
+        email?: string;
+        name?: string;
+        password?: string;
+        role?: string;
+    };
+
+    const updatedUser = db.query(
+        `UPDATE users 
+         SET email = ?, name = ?, password = ?, role = ? 
+         WHERE id = ?`,
+        [sanitizedBody.email, sanitizedBody.name, sanitizedBody.password, sanitizedBody.role, verifiedAccessToken.id]
+    );
+
+    console.log(updatedUser);
+
+    sendResponse(ctx, 200, "User updated successfully");
+});
+
+/* AUTH LOGOUT */
+authRoutes.get("/logout", (ctx: Context) => {
+    ctx.cookies.delete("refresh_token");
+    ctx.cookies.delete("access_token");
+
+    sendResponse(ctx, 200, "Logged out");
+});
+
+/* AUTH DELETE */
+authRoutes.delete("/delete", async (ctx: Context) => {
+    const accessToken = await ctx.cookies.get("access_token");
+    if (!accessToken) throw new HttpError(401, "Unauthorized delete", ["Missing access token"]);
+
+    const verifiedAccessToken = (await verifyJWT(accessToken)) as {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        exp: number;
+    };
+
+    if (!verifiedAccessToken) {
+        ctx.cookies.delete("refresh_token");
+        ctx.cookies.delete("access_token");
+
+        throw new HttpError(401, "Expired token", ["Access token expired"]);
+    }
+
+    const userExists = db.query(`SELECT * FROM users WHERE id = ?`, [verifiedAccessToken.id]);
+
+    if (!userExists || userExists.length === 0) {
+        throw new HttpError(404, "User not found", ["No user found with given ID"]);
+    }
+
     db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
     ctx.cookies.delete("refresh_token");
@@ -119,6 +163,7 @@ authRoutes.delete("/delete", async (ctx: Context) => {
     sendResponse(ctx, 200, "User deleted successfully");
 });
 
+/* AUTH CHECK */
 authRoutes.get("/auth-check", async (ctx: Context) => {
     const currentTime = Math.floor(Date.now() / 1000);
 
@@ -131,7 +176,7 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
         id: string;
         email: string;
         name: string;
-        image: string;
+        role: string;
         exp: number;
     };
 
@@ -148,7 +193,6 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
                 id: verifiedRefreshToken.id,
                 email: verifiedRefreshToken.email,
                 name: verifiedRefreshToken.name,
-                image: verifiedRefreshToken.image,
             },
             REFRESH_TOKEN_EXP
         );
@@ -158,7 +202,6 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
                 id: verifiedRefreshToken.id,
                 email: verifiedRefreshToken.email,
                 name: verifiedRefreshToken.name,
-                image: verifiedRefreshToken.image,
             },
             ACCESS_TOKEN_EXP
         );
@@ -175,3 +218,5 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
 });
 
 export default authRoutes;
+
+/* TEST TO SEE IF ALL WORKS + UPDATES */

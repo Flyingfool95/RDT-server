@@ -16,3 +16,11 @@ export const registerSchema = loginSchema
         message: "Passwords do not match",
         path: ["confirmPassword"],
     });
+
+export const userSchema = z.object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    email: z.string().optional(),
+    role: z.string().optional(),
+    password: z.string().optional(),
+});
