@@ -85,15 +85,11 @@ authRoutes.post("/register", async (ctx: Context) => {
 /* AUTH UPDATE */
 authRoutes.put("/update", async (ctx: Context) => {
     const verifiedAccessToken = await validateAccessToken(ctx);
-
     const userExists = checkIfUserExists("id", verifiedAccessToken.id);
-
     if (!userExists) throw new HttpError(401, "User does not exist", ["User not found"]);
 
     const body = await ctx.request.body.json();
-
     const verifiedBody = validateData(userSchema, body);
-
     const sanitizedBody = sanitizeStrings(verifiedBody) as {
         id: string;
         email: string;
