@@ -1,7 +1,14 @@
 import db from "../../db/db.ts";
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
-import { generateSalt, sanitizeStrings, sendResponse, validateAccessToken, validateData } from "../utils/helpers.ts";
+import {
+    deleteJWTTokens,
+    generateSalt,
+    sanitizeStrings,
+    sendResponse,
+    validateAccessToken,
+    validateData,
+} from "../utils/helpers.ts";
 import { loginSchema, registerSchema, userSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
@@ -107,8 +114,7 @@ authRoutes.put("/update", async (ctx: Context) => {
 
 /* AUTH LOGOUT */
 authRoutes.get("/logout", (ctx: Context) => {
-    ctx.cookies.delete("refresh_token");
-    ctx.cookies.delete("access_token");
+    deleteJWTTokens(ctx);
 
     sendResponse(ctx, 200, "Logged out");
 });
@@ -125,8 +131,7 @@ authRoutes.delete("/delete", async (ctx: Context) => {
 
     db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
-    ctx.cookies.delete("refresh_token");
-    ctx.cookies.delete("access_token");
+    deleteJWTTokens(ctx);
 
     sendResponse(ctx, 200, "User deleted successfully");
 });
@@ -149,9 +154,7 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
     };
 
     if (!verifiedRefreshToken) {
-        ctx.cookies.delete("refresh_token");
-        ctx.cookies.delete("access_token");
-
+        deleteJWTTokens(ctx);
         throw new HttpError(401, "Expired token", ["Refresh token expired"]);
     }
 

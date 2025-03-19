@@ -98,3 +98,8 @@ export async function validateAccessToken(ctx: Context) {
 
     return verifiedAccessToken;
 }
+
+export function deleteJWTTokens(ctx: Context) {
+    ctx.cookies.delete("refresh_token");
+    ctx.cookies.delete("access_token");
+}
