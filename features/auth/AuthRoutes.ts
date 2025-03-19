@@ -2,8 +2,10 @@ import db from "../../db/db.ts";
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
 import {
+    checkIfUserExists,
     deleteJWTTokens,
     generateSalt,
+    getUser,
     sanitizeStrings,
     sendResponse,
     validateAccessToken,
@@ -25,29 +27,24 @@ authRoutes.post("/login", async (ctx: Context) => {
     const verifiedBody = validateData(loginSchema, body);
     const sanitizedBody = sanitizeStrings(verifiedBody) as { email: string; password: string };
 
-    const results = db.query(`SELECT id, email, name, image, role, password FROM users WHERE email = ?`, [
-        sanitizedBody.email,
-    ]);
-    if (!results.length) throw new HttpError(401, "Login failed", ["User doesn't exist"]);
+    const userData = getUser(sanitizedBody.email);
 
-    const isMatch = await verify(results[0][5] as string, sanitizedBody.password);
+    const isMatch = await verify(userData.password as string, sanitizedBody.password);
     if (!isMatch) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
 
-    const data = {
-        id: results[0][0],
-        email: results[0][1],
-        name: results[0][2],
-        image: results[0][3],
-        role: results[0][4],
-    };
-
-    const refreshToken = await generateJWT(data, REFRESH_TOKEN_EXP);
-    const accessToken = await generateJWT(data, ACCESS_TOKEN_EXP);
+    const refreshToken = await generateJWT(
+        { id: userData.id, email: userData.email, name: userData.name, role: userData.role },
+        REFRESH_TOKEN_EXP
+    );
+    const accessToken = await generateJWT(
+        { id: userData.id, email: userData.email, name: userData.name, role: userData.role },
+        ACCESS_TOKEN_EXP
+    );
 
     setCookie(ctx, "refresh_token", refreshToken, { maxAge: REFRESH_TOKEN_EXP });
     setCookie(ctx, "access_token", accessToken, { maxAge: ACCESS_TOKEN_EXP });
 
-    sendResponse(ctx, 200, { data });
+    sendResponse(ctx, 200, { id: userData.id, email: userData.email, name: userData.name, role: userData.role });
 });
 
 /* AUTH REGISTER */
@@ -67,6 +64,13 @@ authRoutes.post("/register", async (ctx: Context) => {
         salt,
     });
 
+    //Check if user with email alredy exists
+    const userExists = checkIfUserExists("email", sanitizedBody.email);
+
+    if (userExists) {
+        throw new HttpError(401, "User already exists", ["User already exists"]);
+    }
+
     db.query("INSERT INTO users (id, email, name, role, password) VALUES (?, ?, ?, ?, ?)", [
         id,
         sanitizedBody.email,
@@ -82,29 +86,26 @@ authRoutes.post("/register", async (ctx: Context) => {
 authRoutes.put("/update", async (ctx: Context) => {
     const verifiedAccessToken = await validateAccessToken(ctx);
 
-    const userExists = db.query(`SELECT * FROM users WHERE id = ?`, [verifiedAccessToken.id]);
+    const userExists = checkIfUserExists("id", verifiedAccessToken.id);
 
-    if (!userExists || userExists.length === 0) {
-        throw new HttpError(404, "User not found", ["No user found with given ID"]);
-    }
+    if (!userExists) throw new HttpError(401, "User does not exist", ["User not found"]);
 
     const body = await ctx.request.body.json();
 
     const verifiedBody = validateData(userSchema, body);
 
     const sanitizedBody = sanitizeStrings(verifiedBody) as {
-        id?: string;
-        email?: string;
-        name?: string;
-        password?: string;
-        role?: string;
+        id: string;
+        email: string;
+        name: string;
+        role: string;
     };
 
     const updatedUser = db.query(
         `UPDATE users 
-         SET email = ?, name = ?, password = ?, role = ? 
+         SET email = ?, name = ?, role = ? 
          WHERE id = ?`,
-        [sanitizedBody.email, sanitizedBody.name, sanitizedBody.password, sanitizedBody.role, verifiedAccessToken.id]
+        [sanitizedBody.email, sanitizedBody.name, sanitizedBody.role, verifiedAccessToken.id]
     );
 
     console.log(updatedUser);
@@ -123,11 +124,9 @@ authRoutes.get("/logout", (ctx: Context) => {
 authRoutes.delete("/delete", async (ctx: Context) => {
     const verifiedAccessToken = await validateAccessToken(ctx);
 
-    const userExists = db.query(`SELECT * FROM users WHERE id = ?`, [verifiedAccessToken.id]);
+    const userExists = checkIfUserExists("id", verifiedAccessToken.id);
 
-    if (!userExists || userExists.length === 0) {
-        throw new HttpError(404, "User not found", ["No user found with given ID"]);
-    }
+    if (!userExists) throw new HttpError(401, "User does not exist", ["User not found"]);
 
     db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 

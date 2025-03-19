@@ -3,6 +3,7 @@ import { ZodError, ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import xss from "npm:xss";
 import { HttpError } from "./classes.ts";
 import { verifyJWT } from "./jwt.ts";
+import db from "../../db/db.ts";
 
 export function sendResponse(ctx: Context, status: number, data: unknown = null, errors: string[] | null = null) {
     ctx.response.status = status;
@@ -102,4 +103,29 @@ export async function validateAccessToken(ctx: Context) {
 export function deleteJWTTokens(ctx: Context) {
     ctx.cookies.delete("refresh_token");
     ctx.cookies.delete("access_token");
+}
+
+export function checkIfUserExists(field: string, value: string) {
+    const query = `SELECT * FROM users WHERE ${field} = ?`;
+    const results = db.query(query, [value]);
+
+    if (!results || results.length === 0) return null;
+
+    return results;
+}
+
+export function getUser(userEmail: string) {
+    const results = db.query(`SELECT id, email, name, image, role, password FROM users WHERE email = ?`, [userEmail]);
+
+    if (!results.length) throw new HttpError(401, "Login failed", ["User doesn't exist"]);
+
+    const userData = {
+        id: results[0][0],
+        email: results[0][1],
+        name: results[0][2],
+        role: results[0][4],
+        password: results[0][5],
+    };
+
+    return userData;
 }
