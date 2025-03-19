@@ -2,6 +2,7 @@ import { Context } from "jsr:@oak/oak";
 import { ZodError, ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import xss from "npm:xss";
 import { HttpError } from "./classes.ts";
+import { verifyJWT } from "./jwt.ts";
 
 export function sendResponse(ctx: Context, status: number, data: unknown = null, errors: string[] | null = null) {
     ctx.response.status = status;
@@ -74,4 +75,26 @@ export function validateInputData(schema: ZodSchema, data: unknown) {
     }
 
     return result.data;
+}
+
+export async function validateAccessToken(ctx: Context) {
+    const accessToken = await ctx.cookies.get("access_token");
+    if (!accessToken) throw new HttpError(401, "Unauthorized", ["Missing access token"]);
+
+    const verifiedAccessToken = (await verifyJWT(accessToken)) as {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        exp: number;
+    };
+
+    if (!verifiedAccessToken) {
+        ctx.cookies.delete("refresh_token");
+        ctx.cookies.delete("access_token");
+
+        throw new HttpError(401, "Expired token", ["Access token expired"]);
+    }
+
+    return verifiedAccessToken;
 }

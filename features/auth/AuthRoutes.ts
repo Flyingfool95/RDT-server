@@ -1,7 +1,7 @@
 import db from "../../db/db.ts";
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
-import { generateSalt, sanitizeStrings, sendResponse, validateData } from "../utils/helpers.ts";
+import { generateSalt, sanitizeStrings, sendResponse, validateAccessToken, validateData } from "../utils/helpers.ts";
 import { loginSchema, registerSchema, userSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
@@ -73,23 +73,7 @@ authRoutes.post("/register", async (ctx: Context) => {
 
 /* AUTH UPDATE */
 authRoutes.put("/update", async (ctx: Context) => {
-    const accessToken = await ctx.cookies.get("access_token");
-    if (!accessToken) throw new HttpError(401, "Unauthorized", ["Missing access token"]);
-
-    const verifiedAccessToken = (await verifyJWT(accessToken)) as {
-        id: string;
-        email: string;
-        name: string;
-        role: string;
-        exp: number;
-    };
-
-    if (!verifiedAccessToken) {
-        ctx.cookies.delete("refresh_token");
-        ctx.cookies.delete("access_token");
-
-        throw new HttpError(401, "Expired token", ["Access token expired"]);
-    }
+    const verifiedAccessToken = await validateAccessToken(ctx);
 
     const userExists = db.query(`SELECT * FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
@@ -131,23 +115,7 @@ authRoutes.get("/logout", (ctx: Context) => {
 
 /* AUTH DELETE */
 authRoutes.delete("/delete", async (ctx: Context) => {
-    const accessToken = await ctx.cookies.get("access_token");
-    if (!accessToken) throw new HttpError(401, "Unauthorized delete", ["Missing access token"]);
-
-    const verifiedAccessToken = (await verifyJWT(accessToken)) as {
-        id: string;
-        email: string;
-        name: string;
-        role: string;
-        exp: number;
-    };
-
-    if (!verifiedAccessToken) {
-        ctx.cookies.delete("refresh_token");
-        ctx.cookies.delete("access_token");
-
-        throw new HttpError(401, "Expired token", ["Access token expired"]);
-    }
+    const verifiedAccessToken = await validateAccessToken(ctx);
 
     const userExists = db.query(`SELECT * FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
