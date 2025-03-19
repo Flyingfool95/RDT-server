@@ -2,13 +2,12 @@ import db from "../../db/db.ts";
 import { Context, Router } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
 import {
-    checkIfUserExists,
+    getUserIfExists,
     deleteJWTTokens,
     generateSalt,
-    getUser,
     sanitizeStrings,
     sendResponse,
-    validateAccessToken,
+    verifyAccessToken,
     validateData,
 } from "../utils/helpers.ts";
 import { loginSchema, registerSchema, userSchema } from "../../zod/auth.ts";
@@ -27,7 +26,8 @@ authRoutes.post("/login", async (ctx: Context) => {
     const verifiedBody = validateData(loginSchema, body);
     const sanitizedBody = sanitizeStrings(verifiedBody) as { email: string; password: string };
 
-    const userData = getUser(sanitizedBody.email);
+    const userData = getUserIfExists("email", sanitizedBody.email);
+    if (!userData) throw new HttpError(401, "User does not exist", ["User not found"]);
 
     const isMatch = await verify(userData.password as string, sanitizedBody.password);
     if (!isMatch) throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
@@ -50,7 +50,6 @@ authRoutes.post("/login", async (ctx: Context) => {
 /* AUTH REGISTER */
 authRoutes.post("/register", async (ctx: Context) => {
     const body = await ctx.request.body.json();
-
     const verifiedBody = validateData(registerSchema, body);
     const sanitizedBody = sanitizeStrings(verifiedBody) as {
         email: string;
@@ -65,11 +64,9 @@ authRoutes.post("/register", async (ctx: Context) => {
     });
 
     //Check if user with email alredy exists
-    const userExists = checkIfUserExists("email", sanitizedBody.email);
+    const userData = getUserIfExists("email", sanitizedBody.email);
 
-    if (userExists) {
-        throw new HttpError(401, "User already exists", ["User already exists"]);
-    }
+    if (userData) throw new HttpError(401, "User already exists", ["User already exists"]);
 
     db.query("INSERT INTO users (id, email, name, role, password) VALUES (?, ?, ?, ?, ?)", [
         id,
@@ -84,9 +81,9 @@ authRoutes.post("/register", async (ctx: Context) => {
 
 /* AUTH UPDATE */
 authRoutes.put("/update", async (ctx: Context) => {
-    const verifiedAccessToken = await validateAccessToken(ctx);
-    const userExists = checkIfUserExists("id", verifiedAccessToken.id);
-    if (!userExists) throw new HttpError(401, "User does not exist", ["User not found"]);
+    const verifiedAccessToken = await verifyAccessToken(ctx);
+    const userData = getUserIfExists("id", verifiedAccessToken.id);
+    if (!userData) throw new HttpError(401, "User does not exist", ["User not found"]);
 
     const body = await ctx.request.body.json();
     const verifiedBody = validateData(userSchema, body);
@@ -112,17 +109,14 @@ authRoutes.put("/update", async (ctx: Context) => {
 /* AUTH LOGOUT */
 authRoutes.get("/logout", (ctx: Context) => {
     deleteJWTTokens(ctx);
-
     sendResponse(ctx, 200, "Logged out");
 });
 
 /* AUTH DELETE */
 authRoutes.delete("/delete", async (ctx: Context) => {
-    const verifiedAccessToken = await validateAccessToken(ctx);
-
-    const userExists = checkIfUserExists("id", verifiedAccessToken.id);
-
-    if (!userExists) throw new HttpError(401, "User does not exist", ["User not found"]);
+    const verifiedAccessToken = await verifyAccessToken(ctx);
+    const userData = getUserIfExists("id", verifiedAccessToken.id);
+    if (!userData) throw new HttpError(401, "User does not exist", ["User not found"]);
 
     db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
@@ -137,7 +131,6 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
 
     const accessToken = await ctx.cookies.get("access_token");
     const refreshToken = await ctx.cookies.get("refresh_token");
-
     if (!refreshToken) return sendResponse(ctx, 401, "Missing refresh token, please login...");
 
     const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {

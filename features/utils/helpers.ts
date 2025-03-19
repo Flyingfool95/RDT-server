@@ -78,7 +78,7 @@ export function validateInputData(schema: ZodSchema, data: unknown) {
     return result.data;
 }
 
-export async function validateAccessToken(ctx: Context) {
+export async function verifyAccessToken(ctx: Context) {
     const accessToken = await ctx.cookies.get("access_token");
     if (!accessToken) throw new HttpError(401, "Unauthorized", ["Missing access token"]);
 
@@ -105,19 +105,11 @@ export function deleteJWTTokens(ctx: Context) {
     ctx.cookies.delete("access_token");
 }
 
-export function checkIfUserExists(field: string, value: string) {
+export function getUserIfExists(field: string, value: string) {
     const query = `SELECT * FROM users WHERE ${field} = ?`;
     const results = db.query(query, [value]);
 
     if (!results || results.length === 0) return null;
-
-    return results;
-}
-
-export function getUser(userEmail: string) {
-    const results = db.query(`SELECT id, email, name, image, role, password FROM users WHERE email = ?`, [userEmail]);
-
-    if (!results.length) throw new HttpError(401, "Login failed", ["User doesn't exist"]);
 
     const userData = {
         id: results[0][0],
