@@ -103,6 +103,8 @@ authRoutes.put("/update", async (ctx: Context) => {
 
     console.log(updatedUser);
 
+    /* MAKE PROFILE FORM FOR UPDATING AND TEST IT */
+
     sendResponse(ctx, 200, "User updated successfully");
 });
 
