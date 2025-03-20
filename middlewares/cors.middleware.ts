@@ -1,6 +1,6 @@
 import { Context, Middleware } from "jsr:@oak/oak";
 
-const allowedOrigins = new Set(["http://localhost:5173", "https://your-production-site.com"]);
+const allowedOrigins = new Set(["http://localhost:5173"]);
 
 const corsMiddleware: Middleware = async (ctx: Context, next) => {
     const origin = ctx.request.headers.get("Origin");
