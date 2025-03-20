@@ -10,7 +10,7 @@ import {
     verifyAccessToken,
     validateData,
 } from "../utils/helpers.ts";
-import { loginSchema, registerSchema, userSchema } from "../../zod/auth.ts";
+import { loginSchema, registerSchema, updateUserSchema } from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 import { setCookie } from "../utils/helpers.ts";
@@ -63,7 +63,6 @@ authRoutes.post("/register", async (ctx: Context) => {
         salt,
     });
 
-    //Check if user with email alredy exists
     const userData = getUserIfExists("email", sanitizedBody.email);
 
     if (userData) throw new HttpError(401, "User already exists", ["User already exists"]);
@@ -79,33 +78,75 @@ authRoutes.post("/register", async (ctx: Context) => {
     sendResponse(ctx, 201, "Register");
 });
 
-/* AUTH UPDATE */
 authRoutes.put("/update", async (ctx: Context) => {
     const verifiedAccessToken = await verifyAccessToken(ctx);
-    const userData = getUserIfExists("id", verifiedAccessToken.id);
-    if (!userData) throw new HttpError(401, "User does not exist", ["User not found"]);
+
+    const currentUser = getUserIfExists("id", verifiedAccessToken.id);
+    if (!currentUser) throw new HttpError(401, "Unauthorized");
 
     const body = await ctx.request.body.json();
-    const verifiedBody = validateData(userSchema, body);
+    const verifiedBody = validateData(updateUserSchema, body);
     const sanitizedBody = sanitizeStrings(verifiedBody) as {
-        id: string;
         email: string;
         name: string;
-        role: string;
+        newPassword: string;
+        currentPassword: string;
     };
 
-    const updatedUser = db.query(
-        `UPDATE users 
-         SET email = ?, name = ?, role = ? 
-         WHERE id = ?`,
-        [sanitizedBody.email, sanitizedBody.name, sanitizedBody.role, verifiedAccessToken.id]
-    );
+    const updateFields: string[] = [];
+    const updateValues: any[] = [];
 
-    console.log(updatedUser);
+    if (sanitizedBody.newPassword) {
+        if (!sanitizedBody.currentPassword) {
+            throw new HttpError(400, "Current password required");
+        }
 
-    /* MAKE PROFILE FORM FOR UPDATING AND TEST IT */
+        const passwordValid = await verify(currentUser.password as string, sanitizedBody.currentPassword);
 
-    sendResponse(ctx, 200, "User updated successfully");
+        if (!passwordValid) {
+            throw new HttpError(401, "Invalid current password");
+        }
+
+        updateFields.push("password = ?");
+        const salt = generateSalt(24);
+        updateValues.push(await hash(sanitizedBody.newPassword), {
+            salt,
+        });
+    }
+
+    if (sanitizedBody.email) {
+        updateFields.push("email = ?");
+        updateValues.push(sanitizedBody.email);
+    }
+
+    if (sanitizedBody.name) {
+        updateFields.push("name = ?");
+        updateValues.push(sanitizedBody.name);
+    }
+
+    if (updateFields.length === 0) {
+        throw new HttpError(400, "No valid fields to update");
+    }
+
+    const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
+    updateValues.push(verifiedAccessToken.id);
+
+    db.query(query, updateValues);
+
+    const updatedUser = getUserIfExists("id", verifiedAccessToken.id);
+    if (!updatedUser) throw new HttpError(500, "Update verification failed");
+
+    const safeUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        role: updatedUser.role,
+    };
+
+    sendResponse(ctx, 200, {
+        message: "Profile updated successfully",
+        user: safeUser,
+    });
 });
 
 /* AUTH LOGOUT */
