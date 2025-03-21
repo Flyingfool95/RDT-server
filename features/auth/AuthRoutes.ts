@@ -106,9 +106,7 @@ authRoutes.put("/update", async (ctx: Context) => {
         if (!sanitizedBody.currentPassword) {
             throw new HttpError(400, "Current password required", ["Current password required"]);
         }
-        console.log(currentUser.password);
-        console.log(sanitizedBody.currentPassword);
-        console.log(await verify(currentUser.password as string, sanitizedBody.currentPassword));
+
         const passwordValid = await verify(currentUser.password as string, sanitizedBody.currentPassword);
 
         if (!passwordValid) {
@@ -117,9 +115,10 @@ authRoutes.put("/update", async (ctx: Context) => {
 
         updateFields.push("password = ?");
         const salt = generateSalt(24);
-        updateValues.push(await hash(sanitizedBody.newPassword), {
+        const hashedPassword = await hash(sanitizedBody.newPassword, {
             salt,
         });
+        updateValues.push(hashedPassword);
     }
 
     if (sanitizedBody.email) {
