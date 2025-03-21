@@ -10,11 +10,11 @@ export async function errorHandler(ctx: Context, next: Next) {
         console.error(error);
 
         if (error instanceof HttpError) {
-            sendResponse(ctx, error.status, null, error.errors);
+            sendResponse(ctx, error.status, null, "Http Error", error.errors);
         } else if (error instanceof SqliteError) {
-            sendResponse(ctx, 400, null, [(error as Error).message]);
+            sendResponse(ctx, 400, null, "SQL Error", [(error as Error).message]);
         } else {
-            sendResponse(ctx, 500, null, [(error as Error).message]);
+            sendResponse(ctx, 500, null, null, [(error as Error).message]);
         }
     }
 }

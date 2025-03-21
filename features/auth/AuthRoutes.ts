@@ -20,6 +20,37 @@ const authRoutes = new Router();
 const REFRESH_TOKEN_EXP = 432000;
 const ACCESS_TOKEN_EXP = 900;
 
+/* AUTH REGISTER */
+authRoutes.post("/register", async (ctx: Context) => {
+    const body = await ctx.request.body.json();
+    const verifiedBody = validateData(registerSchema, body);
+    const sanitizedBody = sanitizeStrings(verifiedBody) as {
+        email: string;
+        password: string;
+        confirmPassword: string;
+    };
+
+    const id = crypto.randomUUID();
+    const salt = generateSalt(24);
+    const hashedPassword = await hash(sanitizedBody.password, {
+        salt,
+    });
+
+    const userData = getUserIfExists("email", sanitizedBody.email);
+
+    if (userData) throw new HttpError(401, "Unauthorized", ["User already exists"]);
+
+    db.query("INSERT INTO users (id, email, name, role, password) VALUES (?, ?, ?, ?, ?)", [
+        id,
+        sanitizedBody.email,
+        "",
+        "user",
+        hashedPassword,
+    ]);
+
+    sendResponse(ctx, 201, null, "User registered");
+});
+
 /* AUTH LOGIN */
 authRoutes.post("/login", async (ctx: Context) => {
     const body = await ctx.request.body.json();
@@ -44,45 +75,20 @@ authRoutes.post("/login", async (ctx: Context) => {
     setCookie(ctx, "refresh_token", refreshToken, { maxAge: REFRESH_TOKEN_EXP });
     setCookie(ctx, "access_token", accessToken, { maxAge: ACCESS_TOKEN_EXP });
 
-    sendResponse(ctx, 200, { id: userData.id, email: userData.email, name: userData.name, role: userData.role });
+    sendResponse(
+        ctx,
+        200,
+        { id: userData.id, email: userData.email, name: userData.name, role: userData.role },
+        "User loggedin"
+    );
 });
 
-/* AUTH REGISTER */
-authRoutes.post("/register", async (ctx: Context) => {
-    const body = await ctx.request.body.json();
-    const verifiedBody = validateData(registerSchema, body);
-    const sanitizedBody = sanitizeStrings(verifiedBody) as {
-        email: string;
-        password: string;
-        confirmPassword: string;
-    };
-
-    const id = crypto.randomUUID();
-    const salt = generateSalt(24);
-    const hashedPassword = await hash(sanitizedBody.password, {
-        salt,
-    });
-
-    const userData = getUserIfExists("email", sanitizedBody.email);
-
-    if (userData) throw new HttpError(401, "User already exists", ["User already exists"]);
-
-    db.query("INSERT INTO users (id, email, name, role, password) VALUES (?, ?, ?, ?, ?)", [
-        id,
-        sanitizedBody.email,
-        "",
-        "user",
-        hashedPassword,
-    ]);
-
-    sendResponse(ctx, 201, "Register");
-});
-
+/* AUTH UPDATE */
 authRoutes.put("/update", async (ctx: Context) => {
     const verifiedAccessToken = await verifyAccessToken(ctx);
 
     const currentUser = getUserIfExists("id", verifiedAccessToken.id);
-    if (!currentUser) throw new HttpError(401, "Unauthorized");
+    if (!currentUser) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     const body = await ctx.request.body.json();
     const verifiedBody = validateData(updateUserSchema, body);
@@ -98,13 +104,15 @@ authRoutes.put("/update", async (ctx: Context) => {
 
     if (sanitizedBody.newPassword) {
         if (!sanitizedBody.currentPassword) {
-            throw new HttpError(400, "Current password required");
+            throw new HttpError(400, "Current password required", ["Current password required"]);
         }
-
+        console.log(currentUser.password);
+        console.log(sanitizedBody.currentPassword);
+        console.log(await verify(currentUser.password as string, sanitizedBody.currentPassword));
         const passwordValid = await verify(currentUser.password as string, sanitizedBody.currentPassword);
 
         if (!passwordValid) {
-            throw new HttpError(401, "Invalid current password");
+            throw new HttpError(401, "Unauthorized", ["Invalid credentials"]);
         }
 
         updateFields.push("password = ?");
@@ -125,7 +133,7 @@ authRoutes.put("/update", async (ctx: Context) => {
     }
 
     if (updateFields.length === 0) {
-        throw new HttpError(400, "No valid fields to update");
+        throw new HttpError(400, "No valid fields to update", ["Please fill in fields that you want to update"]);
     }
 
     const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
@@ -134,7 +142,7 @@ authRoutes.put("/update", async (ctx: Context) => {
     db.query(query, updateValues);
 
     const updatedUser = getUserIfExists("id", verifiedAccessToken.id);
-    if (!updatedUser) throw new HttpError(401, "User doesn't exist");
+    if (!updatedUser) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     const safeUser = {
         id: updatedUser.id,
@@ -143,26 +151,26 @@ authRoutes.put("/update", async (ctx: Context) => {
         role: updatedUser.role,
     };
 
-    sendResponse(ctx, 200, safeUser);
+    sendResponse(ctx, 200, safeUser, "User updated");
 });
 
 /* AUTH LOGOUT */
 authRoutes.get("/logout", (ctx: Context) => {
     deleteJWTTokens(ctx);
-    sendResponse(ctx, 200, "Logged out");
+    sendResponse(ctx, 200, null, "Logged out");
 });
 
 /* AUTH DELETE */
 authRoutes.delete("/delete", async (ctx: Context) => {
     const verifiedAccessToken = await verifyAccessToken(ctx);
     const userData = getUserIfExists("id", verifiedAccessToken.id);
-    if (!userData) throw new HttpError(401, "User does not exist", ["User not found"]);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
     deleteJWTTokens(ctx);
 
-    sendResponse(ctx, 200, "User deleted successfully");
+    sendResponse(ctx, 200, null, "User deleted");
 });
 
 /* AUTH CHECK */
@@ -171,7 +179,10 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
 
     const accessToken = await ctx.cookies.get("access_token");
     const refreshToken = await ctx.cookies.get("refresh_token");
-    if (!refreshToken) return sendResponse(ctx, 401, "Missing refresh token, please login...");
+    if (!refreshToken) {
+        deleteJWTTokens(ctx);
+        return sendResponse(ctx, 401, null, "Missing refresh token, please login...");
+    }
 
     const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {
         id: string;
@@ -183,11 +194,11 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
 
     if (!verifiedRefreshToken) {
         deleteJWTTokens(ctx);
-        throw new HttpError(401, "Expired token", ["Refresh token expired"]);
+        throw new HttpError(401, "Unauthorized", ["Refresh token expired"]);
     }
 
     const userData = getUserIfExists("id", verifiedRefreshToken.id);
-    if (!userData) throw new HttpError(401, "User doesn't exist");
+    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     if (!accessToken && verifiedRefreshToken.exp > currentTime) {
         const newRefreshToken = await generateJWT(
@@ -232,4 +243,3 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
 });
 
 export default authRoutes;
-

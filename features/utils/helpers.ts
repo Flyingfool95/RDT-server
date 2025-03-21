@@ -5,11 +5,18 @@ import { HttpError } from "./classes.ts";
 import { verifyJWT } from "./jwt.ts";
 import db from "../../db/db.ts";
 
-export function sendResponse(ctx: Context, status: number, data: unknown = null, errors: string[] | null = null) {
+export function sendResponse(
+    ctx: Context,
+    status: number,
+    data: unknown = null,
+    message: string | null = null,
+    errors: string[] | null = null
+) {
     ctx.response.status = status;
     ctx.response.body = {
         success: status >= 200 && status < 300,
         data: data ?? null,
+        message,
         errors: errors && errors.length ? errors : null,
     };
 }
