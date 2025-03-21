@@ -134,7 +134,7 @@ authRoutes.put("/update", async (ctx: Context) => {
     db.query(query, updateValues);
 
     const updatedUser = getUserIfExists("id", verifiedAccessToken.id);
-    if (!updatedUser) throw new HttpError(500, "Update verification failed");
+    if (!updatedUser) throw new HttpError(401, "User doesn't exist");
 
     const safeUser = {
         id: updatedUser.id,
@@ -143,10 +143,7 @@ authRoutes.put("/update", async (ctx: Context) => {
         role: updatedUser.role,
     };
 
-    sendResponse(ctx, 200, {
-        message: "Profile updated successfully",
-        user: safeUser,
-    });
+    sendResponse(ctx, 200, safeUser);
 });
 
 /* AUTH LOGOUT */
@@ -189,21 +186,26 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
         throw new HttpError(401, "Expired token", ["Refresh token expired"]);
     }
 
+    const userData = getUserIfExists("id", verifiedRefreshToken.id);
+    if (!userData) throw new HttpError(401, "User doesn't exist");
+
     if (!accessToken && verifiedRefreshToken.exp > currentTime) {
         const newRefreshToken = await generateJWT(
             {
-                id: verifiedRefreshToken.id,
-                email: verifiedRefreshToken.email,
-                name: verifiedRefreshToken.name,
+                id: userData.id,
+                email: userData.email,
+                name: userData.name,
+                role: userData.role,
             },
             REFRESH_TOKEN_EXP
         );
 
         const newAccessToken = await generateJWT(
             {
-                id: verifiedRefreshToken.id,
-                email: verifiedRefreshToken.email,
-                name: verifiedRefreshToken.name,
+                id: userData.id,
+                email: userData.email,
+                name: userData.name,
+                role: userData.role,
             },
             ACCESS_TOKEN_EXP
         );
@@ -213,12 +215,21 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
 
         //Black list refresh token
 
-        return sendResponse(ctx, 200, verifiedRefreshToken);
+        return sendResponse(ctx, 200, {
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            role: userData.role,
+        });
     }
 
-    sendResponse(ctx, 200, verifiedRefreshToken);
+    sendResponse(ctx, 200, {
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+    });
 });
 
 export default authRoutes;
 
-/* TEST TO SEE IF ALL WORKS + UPDATES */

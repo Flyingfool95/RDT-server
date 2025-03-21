@@ -64,7 +64,7 @@ export function setCookie(ctx: Context, name: string, value: string, options: { 
         secure: options.secure ?? Deno.env.get("DENO_ENV") === "production",
         sameSite: "strict",
         path: "/",
-        maxAge: options.maxAge ? options.maxAge * 1000 : undefined,
+        maxAge: options.maxAge ? options.maxAge : undefined,
     });
 }
 
