@@ -109,8 +109,10 @@ authRoutes.put("/update", async (ctx: Context) => {
 
         const passwordValid = await verify(currentUser.password as string, sanitizedBody.currentPassword);
 
+        console.log(passwordValid)
+
         if (!passwordValid) {
-            throw new HttpError(401, "Unauthorized", ["Invalid credentials"]);
+            throw new HttpError(401, "Unauthorized", ["Incorrect current password"]);
         }
 
         updateFields.push("password = ?");
