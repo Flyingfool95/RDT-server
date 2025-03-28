@@ -12,15 +12,10 @@ export const registerSchema = loginSchema
         confirmPassword: z.string(),
     })
     .strict()
-    .refine((data) => data.password === data.confirmPassword, "Passwords do not match");
-
-export const userSchema = z.object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    email: z.string().optional(),
-    role: z.string().optional(),
-    password: z.string().optional(),
-});
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    });
 
 export const updateUserSchema = z
     .object({
