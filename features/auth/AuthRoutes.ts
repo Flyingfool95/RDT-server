@@ -161,7 +161,7 @@ authRoutes.put("/update", async (ctx: Context) => {
 });
 
 /* AUTH LOGOUT */
-authRoutes.get("/logout", (ctx: Context) => {
+authRoutes.get("/logout", async (ctx: Context) => {
     deleteJWTTokens(ctx);
     await logMessage("info", "User logged out");
     sendResponse(ctx, 200, null, "Logged out");
