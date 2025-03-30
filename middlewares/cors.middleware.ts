@@ -1,4 +1,5 @@
 import { Context, Middleware } from "jsr:@oak/oak";
+import { logMessage } from "../features/utils/logger.ts";
 
 const allowedOrigins = new Set(["http://localhost:5173"]);
 
@@ -11,6 +12,9 @@ const corsMiddleware: Middleware = async (ctx: Context, next) => {
         ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
         ctx.response.headers.set("Access-Control-Expose-Headers", "Content-Type, Authorization");
+    } else {
+        // Log unauthorized access attempt
+        await logMessage("warn", `Unauthorized origin attempt: ${origin}`);
     }
 
     if (ctx.request.method === "OPTIONS") {
