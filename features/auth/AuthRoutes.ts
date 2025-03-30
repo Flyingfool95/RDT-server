@@ -14,6 +14,7 @@ import { loginSchema, registerSchema, updateUserSchema } from "../../zod/auth.ts
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 import { setCookie } from "../utils/helpers.ts";
+import { logMessage } from "../utils/logger.ts";
 
 const authRoutes = new Router();
 
@@ -48,6 +49,8 @@ authRoutes.post("/register", async (ctx: Context) => {
         hashedPassword,
     ]);
 
+    logMessage("info", "User registered", id as string);
+    
     sendResponse(ctx, 201, null, "User registered");
 });
 
@@ -74,6 +77,8 @@ authRoutes.post("/login", async (ctx: Context) => {
 
     setCookie(ctx, "refresh_token", refreshToken, { maxAge: REFRESH_TOKEN_EXP });
     setCookie(ctx, "access_token", accessToken, { maxAge: ACCESS_TOKEN_EXP });
+
+    logMessage("info", "User logged in", userData.id as string);
 
     sendResponse(
         ctx,
@@ -150,12 +155,15 @@ authRoutes.put("/update", async (ctx: Context) => {
         role: updatedUser.role,
     };
 
+    logMessage("info", "User profile updated", updatedUser.id as string);
+
     sendResponse(ctx, 200, safeUser, "User updated");
 });
 
 /* AUTH LOGOUT */
 authRoutes.get("/logout", (ctx: Context) => {
     deleteJWTTokens(ctx);
+    logMessage("info", "User logged out");
     sendResponse(ctx, 200, null, "Logged out");
 });
 
@@ -168,6 +176,7 @@ authRoutes.delete("/delete", async (ctx: Context) => {
     db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
 
     deleteJWTTokens(ctx);
+    logMessage("info", "User deleted", verifiedAccessToken.id);
 
     sendResponse(ctx, 200, null, "User deleted");
 });
@@ -224,6 +233,8 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
         setCookie(ctx, "access_token", newAccessToken, { maxAge: ACCESS_TOKEN_EXP });
 
         //Black list refresh token
+
+        logMessage("info", "Token refreshed", userData.id as string);
 
         return sendResponse(ctx, 200, {
             id: userData.id,
