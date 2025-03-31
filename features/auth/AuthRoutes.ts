@@ -10,11 +10,18 @@ import {
     verifyAccessToken,
     validateData,
 } from "../utils/helpers.ts";
-import { loginSchema, registerSchema, updateUserSchema } from "../../zod/auth.ts";
+import {
+    loginSchema,
+    registerSchema,
+    resetPasswordSchema,
+    updateUserSchema,
+    sendResetEmailSchema,
+} from "../../zod/auth.ts";
 import { HttpError } from "../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 import { setCookie } from "../utils/helpers.ts";
 import { logMessage } from "../utils/logger.ts";
+import { sendMail } from "../utils/SMTP.ts";
 
 const authRoutes = new Router();
 
@@ -250,6 +257,60 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
         name: userData.name,
         role: userData.role,
     });
+});
+
+/* AUTH RESET PASSWORD */
+authRoutes.post("/reset-password", async (ctx: Context) => {
+    const body = await ctx.request.body.json();
+    const verifiedBody = validateData(resetPasswordSchema, body);
+    const sanitizedBody = sanitizeStrings(verifiedBody) as {
+        token: string;
+        password: string;
+    };
+
+    const verifiedRefreshToken = (await verifyJWT(sanitizedBody.token)) as {
+        email: string;
+    };
+
+    if (!verifiedRefreshToken) {
+        await logMessage("info", "Token expired");
+        throw new HttpError(401, "Unauthorized", ["Refresh token expired"]);
+    }
+
+    const userData = getUserIfExists("email", verifiedRefreshToken.email);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
+
+    const salt = generateSalt(24);
+    const hashedPassword = await hash(sanitizedBody.password, {
+        salt,
+    });
+
+    db.query(`UPDATE users SET password = ? WHERE email = ?`, [hashedPassword, verifiedRefreshToken.email]);
+
+    await logMessage("info", "User set new password");
+    sendResponse(ctx, 200, null, "New password created");
+});
+
+/* AUTH SEND RESET PASSWORD EMAIL */
+authRoutes.post("/send-reset-email", async (ctx: Context) => {
+    const body = await ctx.request.body.json();
+    const verifiedBody = validateData(sendResetEmailSchema, body);
+    const sanitizedBody = sanitizeStrings({ email: verifiedBody }) as {
+        email: string;
+    };
+
+    const token = await generateJWT({ email: sanitizedBody.email }, 300);
+
+    await sendMail(
+        "contact@omebia.com",
+        sanitizedBody.email,
+        "RDT Reset Password Email",
+        `Reset your password here: http://localhost:5173/reset-password?token=${token}`,
+        `<p>Reset your password <a href="http://localhost:5173/reset-password?token=${token}">here</a></p>`
+    );
+
+    await logMessage("info", "Sending reset email", sanitizedBody.email);
+    sendResponse(ctx, 200, null, "Reset email sent");
 });
 
 export default authRoutes;

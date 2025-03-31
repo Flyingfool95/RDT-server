@@ -41,3 +41,10 @@ export const updateUserSchema = z
             });
         }
     });
+
+export const resetPasswordSchema = z.object({
+    token: z.string(),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export const sendResetEmailSchema = z.string().email("Invalid email format");

@@ -13,15 +13,16 @@ const mailClient = new SMTPClient({
 });
 
 export async function sendMail(
-    from: string = Deno.env.get("SMTP_USERNAME") ?? "PLEASE ADD FROM EMAIL",
-    to: string,
+    fromMail: string = Deno.env.get("SMTP_USERNAME") ?? "PLEASE ADD FROM EMAIL",
+    toMail: string,
     subject: string,
     content: string,
     html: string
 ) {
+
     await mailClient.send({
-        from,
-        to,
+        from: fromMail,
+        to: toMail,
         subject,
         content,
         html,
