@@ -1,11 +1,11 @@
-export async function logMessage(level: string, message: string, userId?: string): Promise<void> {
+export async function logMessage(level: string, message: string, id?: string): Promise<void> {
     const now = new Date();
     const timestamp = now.toISOString();
 
     const logEntry = {
         timestamp,
         level: level.toUpperCase(),
-        userId: userId ?? "anonymous",
+        id: id ?? "anonymous",
         message,
     };
 

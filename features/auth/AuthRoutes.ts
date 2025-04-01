@@ -22,6 +22,7 @@ import { generateJWT, verifyJWT } from "../utils/jwt.ts";
 import { setCookie } from "../utils/helpers.ts";
 import { logMessage } from "../utils/logger.ts";
 import { sendMail } from "../utils/SMTP.ts";
+import { rateLimiter } from "../../middlewares/ratelimit.middleware.ts";
 
 const authRoutes = new Router();
 
@@ -29,7 +30,7 @@ const REFRESH_TOKEN_EXP = 432000;
 const ACCESS_TOKEN_EXP = 900;
 
 /* AUTH REGISTER */
-authRoutes.post("/register", async (ctx: Context) => {
+authRoutes.post("/register", rateLimiter, async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const verifiedBody = validateData(registerSchema, body);
     const sanitizedBody = sanitizeStrings(verifiedBody) as {
@@ -62,7 +63,7 @@ authRoutes.post("/register", async (ctx: Context) => {
 });
 
 /* AUTH LOGIN */
-authRoutes.post("/login", async (ctx: Context) => {
+authRoutes.post("/login", rateLimiter, async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const verifiedBody = validateData(loginSchema, body);
     const sanitizedBody = sanitizeStrings(verifiedBody) as { email: string; password: string };
@@ -260,7 +261,7 @@ authRoutes.get("/auth-check", async (ctx: Context) => {
 });
 
 /* AUTH RESET PASSWORD */
-authRoutes.post("/reset-password", async (ctx: Context) => {
+authRoutes.post("/reset-password", rateLimiter, async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const verifiedBody = validateData(resetPasswordSchema, body);
     const sanitizedBody = sanitizeStrings(verifiedBody) as {
@@ -287,12 +288,12 @@ authRoutes.post("/reset-password", async (ctx: Context) => {
 
     db.query(`UPDATE users SET password = ? WHERE email = ?`, [hashedPassword, verifiedRefreshToken.email]);
 
-    await logMessage("info", "User set new password");
+    await logMessage("info", "User set new password", verifiedRefreshToken.email);
     sendResponse(ctx, 200, null, "New password created");
 });
 
 /* AUTH SEND RESET PASSWORD EMAIL */
-authRoutes.post("/send-reset-email", async (ctx: Context) => {
+authRoutes.post("/send-reset-email", rateLimiter, async (ctx: Context) => {
     const body = await ctx.request.body.json();
     const verifiedBody = validateData(sendResetEmailSchema, body);
     const sanitizedBody = sanitizeStrings({ email: verifiedBody }) as {
