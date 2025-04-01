@@ -310,7 +310,7 @@ authRoutes.post("/send-reset-email", async (ctx: Context) => {
     );
 
     await logMessage("info", "Sending reset email", sanitizedBody.email);
-    
+
     sendResponse(ctx, 200, null, "Reset email sent");
 });
 

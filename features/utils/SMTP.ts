@@ -1,4 +1,5 @@
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { HttpError } from "./classes.ts";
 
 const mailClient = new SMTPClient({
     connection: {
@@ -19,12 +20,16 @@ export async function sendMail(
     content: string,
     html: string
 ) {
-
-    await mailClient.send({
-        from: fromMail,
-        to: toMail,
-        subject,
-        content,
-        html,
-    });
+    try {
+        await mailClient.send({
+            from: fromMail,
+            to: toMail,
+            subject,
+            content,
+            html,
+        });
+    } catch (error) {
+        console.log(error);
+        throw new HttpError(500, "Something went wrong", ["Sending email failed"]);
+    }
 }
