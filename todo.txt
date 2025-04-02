@@ -1,9 +1,9 @@
 Create server core
     - Look into
-        a. Logging
+    ###    a. Logging
         b. Testing
         c. Security (CSRF, XSS etc)
-        d. Email SMTP
+    ###    d. Email SMTP
         e. DB migration tools?
         f. Re-organize folders to use core folder inside features
         g. Documentation
@@ -11,25 +11,3 @@ Create server core
             - Tech stack
             - Error handeling
             - API endpoints in core
-
-
-    - Install
-       a. Zod (Validation)
-       b. Djwt
-       c. SQLite
-    ###   d. Oak 
-
-    - Middleware
-        a. rate-limit
-    ###    b. CORS
-        c. auth check
-
-    - Routes
-        a. /auth
-            - /login
-            - /register
-            ### - /auth-check
-            - /delete
-            - /update
-            - /show
-        b. 
