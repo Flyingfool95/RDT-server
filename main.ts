@@ -10,4 +10,8 @@ app.use(corsMiddleware);
 app.use(errorHandler);
 app.use(router.routes());
 
-await app.listen({ port: 8000 });
+export { app };
+
+if (import.meta.main) {
+    await app.listen({ port: 8000 });
+}
