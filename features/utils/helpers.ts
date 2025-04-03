@@ -4,6 +4,7 @@ import xss from "npm:xss";
 import { HttpError } from "./classes.ts";
 import { verifyJWT } from "./jwt.ts";
 import db from "../../db/db.ts";
+import { access } from "node:fs";
 
 export function sendResponse(
     ctx: Context,
@@ -26,17 +27,17 @@ export function sanitizeStrings(data: unknown): unknown {
         return xss(data);
     }
 
+    if (Array.isArray(data)) {
+        return data.map((item) => sanitizeStrings(item));
+    }
+
     if (data && typeof data === "object") {
         const sanitizedObject: Record<string, unknown> = {};
-
         for (const key in data) {
             if (Object.hasOwnProperty.call(data, key)) {
-                const value = (data as Record<string, unknown>)[key];
-
-                sanitizedObject[key] = typeof value === "string" ? xss(value) : value;
+                sanitizedObject[key] = sanitizeStrings((data as Record<string, unknown>)[key]);
             }
         }
-
         return sanitizedObject;
     }
 
@@ -101,7 +102,7 @@ export async function verifyAccessToken(ctx: Context) {
         ctx.cookies.delete("refresh_token");
         ctx.cookies.delete("access_token");
 
-        throw new HttpError(401, "Expired token", ["Access token expired"]);
+        throw new HttpError(401, "Unauthorized", ["Access token expired"]);
     }
 
     return verifiedAccessToken;

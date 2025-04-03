@@ -17,7 +17,8 @@ const key = await crypto.subtle.importKey(
 
 export async function generateJWT(payload: Record<string, unknown>, expiresIn: number = 3600): Promise<string> {
     const header = { alg: "HS512" as Algorithm, typ: "JWT" };
-    const fullPayload = { ...payload, exp: getNumericDate(expiresIn) };
+    const exp = expiresIn === 0 ? Math.floor(Date.now() / 1000) - 10 : getNumericDate(expiresIn); // 🔥 Set past time
+    const fullPayload = { ...payload, exp };
     return await create(header, fullPayload, key);
 }
 
