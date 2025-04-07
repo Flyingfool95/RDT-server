@@ -107,7 +107,6 @@ Deno.test("sanitizeStrings sanitizes nested objects and arrays", () => {
     if (sanitized.user.details.bio.includes("<script>")) {
         throw new Error("Deeply nested object property was not sanitized");
     }
-    // Check that array elements are sanitized.
     if (Array.isArray(sanitized.user.tags)) {
         sanitized.user.tags.forEach((tag: string) => {
             if (typeof tag === "string" && tag.includes("<script>")) {
@@ -150,7 +149,6 @@ Deno.test("Cookie management", async (t) => {
     await t.step("setCookie sets cookie with correct options", () => {
         const ctx = createFakeContext();
 
-        // Set production environment variable to test secure defaults.
         Deno.env.set("DENO_ENV", "production");
 
         setCookie(ctx as any, "test", "value", { maxAge: 1000, secure: true });
@@ -235,7 +233,6 @@ Deno.test("JWT verification", async (t) => {
 
         await assertRejects(() => verifyAccessToken(ctx as any), HttpError, "Unauthorized");
 
-        // Ensure cookies are deleted.
         assertStrictEquals(ctx.cookies.get("access_token"), undefined);
         assertStrictEquals(ctx.cookies.get("refresh_token"), undefined);
     });
@@ -245,13 +242,12 @@ Deno.test("JWT verification", async (t) => {
 Deno.test("getUserIfExists returns user data if exists", () => {
     const originalQuery = db.query;
     try {
-        // Monkey-patch db.query to simulate user data.
-        db.query = (_query: string, params: any[]) => {
+        db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
             if (params[0] === "existing@example.com") {
                 return [[1, "existing@example.com", "Existing User", "ignored", "user", "hashedpassword"]];
             }
             return [];
-        };
+        }) as typeof db.query;
 
         const user = getUserIfExists("email", "existing@example.com");
         assertEquals(user, {
@@ -265,7 +261,6 @@ Deno.test("getUserIfExists returns user data if exists", () => {
         const nonUser = getUserIfExists("email", "nonexistent@example.com");
         assertStrictEquals(nonUser, null);
     } finally {
-        // Restore original db.query implementation.
         db.query = originalQuery;
     }
 });
