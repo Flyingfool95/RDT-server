@@ -17,7 +17,9 @@ export async function logMessage(level: string, message: string, id?: string): P
     try {
         await Deno.mkdir("logs", { recursive: true });
     } catch (error) {
-        console.log(error);
+        if (!Deno.env.get("TESTING")) {
+            console.log(error);
+        }
     }
 
     await Deno.writeTextFile(filename, logLine, { append: true });

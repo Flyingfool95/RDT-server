@@ -26,7 +26,6 @@ export async function verifyJWT(token: string): Promise<Record<string, unknown> 
     try {
         return await verify(token, key);
     } catch (error) {
-        console.log(error);
         return null;
     }
 }

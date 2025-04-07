@@ -1,7 +1,7 @@
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 import { HttpError } from "./classes.ts";
 
-const mailClient = new SMTPClient({
+export const mailClient = new SMTPClient({
     connection: {
         hostname: Deno.env.get("SMTP_HOSTNAME") ?? "PLEASE ADD A SMTP HOSTNAME IN .ENV",
         port: parseInt(Deno.env.get("SMTP_PORT") ?? "465"),
@@ -29,7 +29,6 @@ export async function sendMail(
             html,
         });
     } catch (error) {
-        console.log(error);
         throw new HttpError(500, "Something went wrong", ["Sending email failed"]);
     }
 }
