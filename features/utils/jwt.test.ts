@@ -23,13 +23,17 @@ Deno.test("verifyJWT returns null for an invalid token", async () => {
     assertEquals(verifiedPayload, null, "Invalid token format should return null on verification");
 });
 
+Deno.test("generateJWT produces a token with 3 parts", async () => {
+    const payload = { foo: "bar" };
+    const token = await generateJWT(payload, 3600);
+    const parts = token.split(".");
+    assertEquals(parts.length, 3, "Token should have 3 parts");
+});
+
 Deno.test("verifyJWT returns null for a tampered token", async () => {
     const payload = { foo: "bar" };
     const token = await generateJWT(payload, 3600);
     const parts = token.split(".");
-    if (parts.length !== 3) {
-        throw new Error("Token does not have 3 parts");
-    }
     parts[2] = parts[2]
         .split("")
         .map((char, index) => (index === 0 ? (char === "A" ? "B" : "A") : char))
