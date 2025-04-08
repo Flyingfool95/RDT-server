@@ -1,4 +1,4 @@
-import { assertStrictEquals, assertThrows, assertEquals, assertRejects } from "jsr:@std/assert";
+import { assertStrictEquals, assertThrows, assertEquals, assertRejects, assert } from "jsr:@std/assert";
 import { z } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import db from "../../db/db.ts";
 import { generateJWT } from "./jwt.ts";
@@ -65,29 +65,34 @@ Deno.test("sendResponse sets correct response", () => {
 });
 
 // --- Sanitization Tests ---
-Deno.test("sanitizeStrings sanitizes strings and object properties", () => {
+Deno.test("sanitizeStrings should sanitize string inputs", () => {
     const malicious = "<script>alert('xss')</script>";
     const sanitized = sanitizeStrings(malicious);
-    if (typeof sanitized === "string") {
-        if (sanitized.includes("<script>") || sanitized.includes("</script>")) {
-            throw new Error("String was not sanitized");
-        }
-    } else {
-        throw new Error("Expected a string");
-    }
 
-    const inputObj = { name: malicious, age: 30 };
-    const sanitizedObj = sanitizeStrings(inputObj) as Record<string, unknown>;
-    if (typeof sanitizedObj.name === "string") {
-        if (sanitizedObj.name.includes("<script>") || sanitizedObj.name.includes("</script>")) {
-            throw new Error("Object string property was not sanitized");
-        }
-    }
-    assertStrictEquals(sanitizedObj.age, 30);
+    // Confirm that the returned value is a string.
+    assert(typeof sanitized === "string", "Expected output to be a string");
+
+    // Verify that any occurrences of <script> tags have been removed.
+    assert(!sanitized.includes("<script>") && !sanitized.includes("</script>"), "String was not sanitized");
 });
 
-// Additional tests for nested objects and arrays in sanitizeStrings.
-Deno.test("sanitizeStrings sanitizes nested objects and arrays", () => {
+Deno.test("sanitizeStrings should sanitize object properties and preserve non-string values", () => {
+    const malicious = "<script>alert('xss')</script>";
+    const inputObj = { name: malicious, age: 30 };
+    const sanitizedObj = sanitizeStrings(inputObj) as Record<string, unknown>;
+
+    // Ensure that the 'name' property is sanitized.
+    assert(typeof sanitizedObj.name === "string", "Expected sanitized object property 'name' to be a string");
+    assert(
+        !(sanitizedObj.name as string).includes("<script>") && !(sanitizedObj.name as string).includes("</script>"),
+        "Object string property was not sanitized"
+    );
+
+    // Confirm that non-string properties remain unchanged.
+    assertStrictEquals(sanitizedObj.age, 30, "Non-string property 'age' was changed");
+});
+
+Deno.test("sanitizeStrings should sanitize nested object properties", () => {
     const malicious = "<script>alert('xss')</script>";
     const input = {
         user: {
@@ -95,26 +100,38 @@ Deno.test("sanitizeStrings sanitizes nested objects and arrays", () => {
             details: {
                 bio: `Hello ${malicious}`,
             },
-            tags: [malicious, "safe"],
         },
-        count: 42,
     };
 
     const sanitized = sanitizeStrings(input) as Record<string, any>;
-    if (sanitized.user.name.includes("<script>")) {
-        throw new Error("Nested object property was not sanitized");
-    }
-    if (sanitized.user.details.bio.includes("<script>")) {
-        throw new Error("Deeply nested object property was not sanitized");
-    }
+
+    assert(!sanitized.user.name.includes("<script>"), "Nested object property 'name' was not sanitized");
+    assert(!sanitized.user.details.bio.includes("<script>"), "Deeply nested object property 'bio' was not sanitized");
+});
+
+Deno.test("sanitizeStrings should sanitize array elements", () => {
+    const malicious = "<script>alert('xss')</script>";
+    const input = {
+        user: {
+            tags: [malicious, "safe"],
+        },
+    };
+
+    const sanitized = sanitizeStrings(input) as Record<string, any>;
+
     if (Array.isArray(sanitized.user.tags)) {
         sanitized.user.tags.forEach((tag: string) => {
-            if (typeof tag === "string" && tag.includes("<script>")) {
-                throw new Error("Array element was not sanitized");
-            }
+            assert(!tag.includes("<script>"), "An element in the tags array was not sanitized");
         });
     }
-    assertStrictEquals(sanitized.count, 42);
+});
+
+Deno.test("sanitizeStrings should leave non-string values unchanged", () => {
+    const input = { count: 42 };
+
+    const sanitized = sanitizeStrings(input) as Record<string, any>;
+
+    assertEquals(sanitized.count, 42, "Non-string value 'count' was changed unexpectedly");
 });
 
 // --- Data Validation Tests ---
@@ -239,9 +256,10 @@ Deno.test("JWT verification", async (t) => {
 });
 
 // --- Database Query Tests ---
-Deno.test("getUserIfExists returns user data if exists", () => {
+Deno.test("getUserIfExists returns user data if it exists", () => {
     const originalQuery = db.query;
     try {
+        // Stub the db.query so that it returns a mock user row for an existing email.
         db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
             if (params[0] === "existing@example.com") {
                 return [[1, "existing@example.com", "Existing User", "ignored", "user", "hashedpassword"]];
@@ -257,10 +275,25 @@ Deno.test("getUserIfExists returns user data if exists", () => {
             role: "user",
             password: "hashedpassword",
         });
+    } finally {
+        // Restore the original db.query implementation.
+        db.query = originalQuery;
+    }
+});
+
+Deno.test("getUserIfExists returns null if user does not exist", () => {
+    const originalQuery = db.query;
+    try {
+        // Stub the db.query to simulate no matching user.
+        db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
+            // Return an empty array regardless of parameters.
+            return [];
+        }) as typeof db.query;
 
         const nonUser = getUserIfExists("email", "nonexistent@example.com");
         assertStrictEquals(nonUser, null);
     } finally {
+        // Restore the original db.query implementation.
         db.query = originalQuery;
     }
 });
