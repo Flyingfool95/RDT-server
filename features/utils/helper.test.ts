@@ -69,10 +69,8 @@ Deno.test("sanitizeStrings should sanitize string inputs", () => {
     const malicious = "<script>alert('xss')</script>";
     const sanitized = sanitizeStrings(malicious);
 
-    // Confirm that the returned value is a string.
     assert(typeof sanitized === "string", "Expected output to be a string");
 
-    // Verify that any occurrences of <script> tags have been removed.
     assert(!sanitized.includes("<script>") && !sanitized.includes("</script>"), "String was not sanitized");
 });
 
@@ -81,14 +79,12 @@ Deno.test("sanitizeStrings should sanitize object properties and preserve non-st
     const inputObj = { name: malicious, age: 30 };
     const sanitizedObj = sanitizeStrings(inputObj) as Record<string, unknown>;
 
-    // Ensure that the 'name' property is sanitized.
     assert(typeof sanitizedObj.name === "string", "Expected sanitized object property 'name' to be a string");
     assert(
         !(sanitizedObj.name as string).includes("<script>") && !(sanitizedObj.name as string).includes("</script>"),
         "Object string property was not sanitized"
     );
 
-    // Confirm that non-string properties remain unchanged.
     assertStrictEquals(sanitizedObj.age, 30, "Non-string property 'age' was changed");
 });
 
@@ -180,7 +176,6 @@ Deno.test("Cookie management", async (t) => {
         assertStrictEquals(cookie.options.maxAge, 1000);
         assertStrictEquals(cookie.options.secure, true);
 
-        // Clean up environment variable.
         Deno.env.delete("DENO_ENV");
     });
 
@@ -259,7 +254,6 @@ Deno.test("JWT verification", async (t) => {
 Deno.test("getUserIfExists returns user data if it exists", () => {
     const originalQuery = db.query;
     try {
-        // Stub the db.query so that it returns a mock user row for an existing email.
         db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
             if (params[0] === "existing@example.com") {
                 return [[1, "existing@example.com", "Existing User", "ignored", "user", "hashedpassword"]];
@@ -276,7 +270,6 @@ Deno.test("getUserIfExists returns user data if it exists", () => {
             password: "hashedpassword",
         });
     } finally {
-        // Restore the original db.query implementation.
         db.query = originalQuery;
     }
 });
@@ -284,16 +277,13 @@ Deno.test("getUserIfExists returns user data if it exists", () => {
 Deno.test("getUserIfExists returns null if user does not exist", () => {
     const originalQuery = db.query;
     try {
-        // Stub the db.query to simulate no matching user.
         db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
-            // Return an empty array regardless of parameters.
             return [];
         }) as typeof db.query;
 
         const nonUser = getUserIfExists("email", "nonexistent@example.com");
         assertStrictEquals(nonUser, null);
     } finally {
-        // Restore the original db.query implementation.
         db.query = originalQuery;
     }
 });
