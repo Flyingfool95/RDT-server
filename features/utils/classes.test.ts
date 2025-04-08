@@ -1,4 +1,4 @@
-// HttpError.test.ts
+import { assertInstanceOf, assertEquals, assert } from "jsr:@std/assert";
 import { HttpError } from "./classes.ts";
 
 Deno.test("should create an instance of HttpError with the correct properties", () => {
@@ -8,19 +8,10 @@ Deno.test("should create an instance of HttpError with the correct properties", 
 
     const error = new HttpError(status, message, errors);
 
-    if (!(error instanceof HttpError)) {
-        throw new Error("Error is not an instance of HttpError");
-    }
-
-    if (error.status !== status) {
-        throw new Error(`Expected status ${status}, but got ${error.status}`);
-    }
-    if (error.message !== message) {
-        throw new Error(`Expected message "${message}", but got "${error.message}"`);
-    }
-    if (JSON.stringify(error.errors) !== JSON.stringify(errors)) {
-        throw new Error(`Expected errors ${JSON.stringify(errors)}, but got ${JSON.stringify(error.errors)}`);
-    }
+    assertInstanceOf(error, HttpError);
+    assertEquals(error.status, status);
+    assertEquals(error.message, message);
+    assertEquals(error.errors, errors);
 });
 
 Deno.test("should set errors to null if not provided", () => {
@@ -29,9 +20,7 @@ Deno.test("should set errors to null if not provided", () => {
 
     const error = new HttpError(status, message);
 
-    if (error.errors !== null) {
-        throw new Error(`Expected errors to be null, but got ${error.errors}`);
-    }
+    assertEquals(error.errors, null);
 });
 
 Deno.test("should correctly inherit from Error", () => {
@@ -39,9 +28,7 @@ Deno.test("should correctly inherit from Error", () => {
     const message = "Internal Server Error";
     const error = new HttpError(status, message);
 
-    if (!(error instanceof Error)) {
-        throw new Error("HttpError is not an instance of Error");
-    }
+    assertInstanceOf(error, Error);
 });
 
 Deno.test("should capture stack trace if available", () => {
@@ -49,7 +36,5 @@ Deno.test("should capture stack trace if available", () => {
     const message = "Internal Server Error";
     const error = new HttpError(status, message);
 
-    if (!error.stack) {
-        throw new Error("Stack trace is missing");
-    }
+    assert(error.stack, "Stack trace is missing");
 });
