@@ -2,9 +2,9 @@
 
 import { assertStrictEquals, assertThrows, assertEquals, assertRejects, assert } from "jsr:@std/assert";
 import { z } from "https://deno.land/x/zod@v3.24.2/mod.ts";
-import db from "../db/db.ts";
-import { generateJWT } from "../features/utils/jwt.ts";
-import { HttpError } from "../features/utils/classes.ts";
+import db from "../../db/db.ts";
+import { generateJWT } from "../../features/utils/jwt.ts";
+import { HttpError } from "../../features/utils/classes.ts";
 import {
     sendResponse,
     sanitizeStrings,
@@ -15,7 +15,7 @@ import {
     verifyAccessToken,
     deleteJWTTokens,
     getUserIfExists,
-} from "../features/utils/helpers.ts";
+} from "../../features/utils/helpers.ts";
 
 // Fake context interface to simulate a request/response environment.
 interface FakeContext {

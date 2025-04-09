@@ -1,8 +1,8 @@
 import { assert, assertEquals, assertRejects } from "jsr:@std/assert";
-import { sendMail } from "../features/utils/SMTP.ts";
-import { HttpError } from "../features/utils/classes.ts";
+import { sendMail } from "../../features/utils/SMTP.ts";
+import { HttpError } from "../../features/utils/classes.ts";
 
-import { mailClient } from "../features/utils/SMTP.ts";
+import { mailClient } from "../../features/utils/SMTP.ts";
 
 Deno.test("sendMail successfully sends an email", async () => {
     const originalSend = mailClient.send;
