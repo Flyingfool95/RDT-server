@@ -18,8 +18,8 @@ export async function sendResetEmail(ctx: Context): Promise<void> {
         "contact@omebia.com",
         sanitizedBody.email,
         "RDT Reset Password Email",
-        `Reset your password here: http://localhost:5173/reset-password?token=${token}`,
-        `<p>Reset your password <a href="http://localhost:5173/reset-password?token=${token}">here</a></p>`
+        `Reset your password here: ${Deno.env.get("FRONTEND_URL")}/reset-password?token=${token}`,
+        `<p>Reset your password <a href="${Deno.env.get("FRONTEND_URL")}/reset-password?token=${token}">here</a></p>`
     );
 
     await logMessage("info", "Sending reset email", sanitizedBody.email);
