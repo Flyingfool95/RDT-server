@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes, assert } from "jsr:@std/assert";
-import { logMessage } from "./logger.ts";
+import { logMessage } from "../features/utils/logger.ts";
 
 // Utility to get today's log file name based on the current date.
 function getTodayLogFilename(): string {

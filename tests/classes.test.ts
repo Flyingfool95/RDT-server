@@ -1,5 +1,5 @@
 import { assertInstanceOf, assertEquals, assert } from "jsr:@std/assert";
-import { HttpError } from "./classes.ts";
+import { HttpError } from "../features/utils/classes.ts";
 
 Deno.test("should create an instance of HttpError with the correct properties", () => {
     const status = 400;

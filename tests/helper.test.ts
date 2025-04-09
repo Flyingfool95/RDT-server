@@ -2,9 +2,9 @@
 
 import { assertStrictEquals, assertThrows, assertEquals, assertRejects, assert } from "jsr:@std/assert";
 import { z } from "https://deno.land/x/zod@v3.24.2/mod.ts";
-import db from "../../db/db.ts";
-import { generateJWT } from "./jwt.ts";
-import { HttpError } from "./classes.ts";
+import db from "../db/db.ts";
+import { generateJWT } from "../features/utils/jwt.ts";
+import { HttpError } from "../features/utils/classes.ts";
 import {
     sendResponse,
     sanitizeStrings,
@@ -15,7 +15,7 @@ import {
     verifyAccessToken,
     deleteJWTTokens,
     getUserIfExists,
-} from "./helpers.ts";
+} from "../features/utils/helpers.ts";
 
 // Fake context interface to simulate a request/response environment.
 interface FakeContext {
@@ -279,7 +279,7 @@ Deno.test("getUserIfExists returns user data if it exists", () => {
 Deno.test("getUserIfExists returns null if user does not exist", () => {
     const originalQuery = db.query;
     try {
-        db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
+        db.query = ((_query: string): [number, string, string, string, string, string][] => {
             return [];
         }) as typeof db.query;
 

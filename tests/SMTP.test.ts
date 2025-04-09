@@ -1,8 +1,8 @@
 import { assert, assertEquals, assertRejects } from "jsr:@std/assert";
-import { sendMail } from "./SMTP.ts";
-import { HttpError } from "./classes.ts";
+import { sendMail } from "../features/utils/SMTP.ts";
+import { HttpError } from "../features/utils/classes.ts";
 
-import { mailClient } from "./SMTP.ts";
+import { mailClient } from "../features/utils/SMTP.ts";
 
 Deno.test("sendMail successfully sends an email", async () => {
     const originalSend = mailClient.send;
@@ -12,7 +12,7 @@ Deno.test("sendMail successfully sends an email", async () => {
 
         mailClient.send = async (params) => {
             sendCalled = true;
-            capturedParams = params;
+            capturedParams = await params;
             return;
         };
 
@@ -41,7 +41,7 @@ Deno.test("sendMail successfully sends an email", async () => {
 Deno.test("sendMail throws HttpError when sending fails", async () => {
     const originalSend = mailClient.send;
     try {
-        mailClient.send = async (_params) => {
+        mailClient.send = (_params) => {
             throw new Error("SMTP error simulation");
         };
 

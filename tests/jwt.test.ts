@@ -1,5 +1,5 @@
 import { assertEquals, assert } from "jsr:@std/assert";
-import { generateJWT, verifyJWT } from "./jwt.ts";
+import { generateJWT, verifyJWT } from "../features/utils/jwt.ts";
 
 Deno.test("generate and verify valid JWT", async () => {
     const payload = { foo: "bar", sub: 123 };
