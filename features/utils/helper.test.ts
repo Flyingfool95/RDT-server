@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { assertStrictEquals, assertThrows, assertEquals, assertRejects, assert } from "jsr:@std/assert";
 import { z } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import db from "../../db/db.ts";
