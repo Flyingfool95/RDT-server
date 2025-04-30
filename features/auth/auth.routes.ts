@@ -2,7 +2,6 @@ import { Router } from "jsr:@oak/oak";
 import { rateLimiter } from "../../middlewares/ratelimit.middleware.ts";
 import { register } from "./controllers/register.controller.ts";
 import { login } from "./controllers/login.controller.ts";
-import { update } from "./controllers/update.controller.ts";
 import { logout } from "./controllers/logout.controller.ts";
 import { deleteUser } from "./controllers/delete.controller.ts";
 import { authCheck } from "./controllers/auth_check.controller.ts";
@@ -16,7 +15,6 @@ authRoutes.post("/login", rateLimiter, login);
 authRoutes.post("/reset-password", rateLimiter, resetPassword);
 authRoutes.post("/send-reset-email", rateLimiter, sendResetEmail);
 
-authRoutes.put("/update", update);
 authRoutes.get("/auth-check", authCheck);
 
 authRoutes.delete("/delete", deleteUser);

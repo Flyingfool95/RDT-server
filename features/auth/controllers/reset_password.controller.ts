@@ -26,7 +26,7 @@ export async function resetPassword(ctx: Context): Promise<void> {
     const salt = generateSalt(24);
     const hashedPassword = await hash(sanitizedBody.password, { salt });
 
-    db.query(`UPDATE users SET password = ? WHERE email = ?`, [hashedPassword, verifiedRefreshToken.email]);
+    db.query(`UPDATE user SET password = ? WHERE email = ?`, [hashedPassword, verifiedRefreshToken.email]);
 
     await logMessage("info", "User set new password", verifiedRefreshToken.email);
     sendResponse(ctx, 200, null, "New password created");

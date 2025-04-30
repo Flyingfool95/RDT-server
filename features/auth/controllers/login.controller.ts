@@ -16,19 +16,18 @@ export async function login(ctx: Context): Promise<void> {
 
     const userData = getUserIfExists("email", sanitizedBody.email);
     if (!userData) {
-        throw new HttpError(401, "User does not exist", ["User not found"]);
+        throw new HttpError(401, "Unauthorized", ["User not found"]);
     }
 
     const isMatch = await verify(userData.password as string, sanitizedBody.password);
     if (!isMatch) {
-        throw new HttpError(401, "Login failed", ["Incorrect credentials"]);
+        throw new HttpError(401, "Unauthorized", ["Incorrect credentials"]);
     }
 
     const payload = {
         id: userData.id,
         email: userData.email,
         name: userData.name,
-        role: userData.role,
     };
 
     const refreshToken = await generateJWT(payload, REFRESH_TOKEN_EXP);
@@ -38,5 +37,15 @@ export async function login(ctx: Context): Promise<void> {
     setCookie(ctx, "access_token", accessToken, { maxAge: ACCESS_TOKEN_EXP });
 
     await logMessage("info", "User logged in", userData.id as string);
-    sendResponse(ctx, 200, payload, "User logged in");
+    sendResponse(
+        ctx,
+        200,
+        {
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            image: userData.image,
+        },
+        "User logged in"
+    );
 }

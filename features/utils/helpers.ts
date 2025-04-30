@@ -4,7 +4,6 @@ import xss from "npm:xss";
 import { HttpError } from "./classes.ts";
 import { verifyJWT } from "./jwt.ts";
 import db from "../../db/db.ts";
-import { access } from "node:fs";
 
 export function sendResponse(
     ctx: Context,
@@ -80,7 +79,7 @@ export function validateInputData(schema: ZodSchema, data: unknown) {
     const result = schema.safeParse(data);
 
     if (!result.success) {
-        throw new Error(`${result.error.issues.map((err: any) => err.message).join(" and ")}`);
+        throw new Error(`${result.error.issues.map((error: any) => error.errors).join(" and ")}`);
     }
 
     return result.data;
@@ -114,17 +113,18 @@ export function deleteJWTTokens(ctx: Context) {
 }
 
 export function getUserIfExists(field: string, value: string) {
-    const query = `SELECT * FROM users WHERE ${field} = ?`;
+    const query = `SELECT * FROM user WHERE ${field} = ?`;
     const results = db.query(query, [value]);
 
     if (!results || results.length === 0) return null;
 
     const userData = {
         id: results[0][0],
-        email: results[0][1],
-        name: results[0][2],
-        role: results[0][4],
-        password: results[0][5],
+        name: results[0][1],
+        email: results[0][2],
+        password: results[0][3],
+        createdAt: results[0][4],
+        image: results[0][5],
     };
 
     return userData;

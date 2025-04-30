@@ -256,9 +256,12 @@ Deno.test("JWT verification", async (t) => {
 Deno.test("getUserIfExists returns user data if it exists", () => {
     const originalQuery = db.query;
     try {
-        db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
+        db.query = ((
+            _query: string,
+            params: any[]
+        ): [number, string, string, string, string, string, string, string][] => {
             if (params[0] === "existing@example.com") {
-                return [[1, "existing@example.com", "Existing User", "ignored", "user", "hashedpassword"]];
+                return [[1, "existing@example.com", "Existing User", "ignored", "user", "hashedpassword", "", ""]];
             }
             return [];
         }) as typeof db.query;
@@ -268,8 +271,9 @@ Deno.test("getUserIfExists returns user data if it exists", () => {
             id: 1,
             email: "existing@example.com",
             name: "Existing User",
-            role: "user",
             password: "hashedpassword",
+            createdAt: "",
+            image: "",
         });
     } finally {
         db.query = originalQuery;

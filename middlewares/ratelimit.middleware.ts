@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { Context } from "jsr:@oak/oak";
 import { verifyJWT } from "../features/utils/jwt.ts";
 import { HttpError } from "../features/utils/classes.ts";

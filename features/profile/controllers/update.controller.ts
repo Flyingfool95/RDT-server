@@ -29,7 +29,7 @@ export async function update(ctx: Context): Promise<void> {
 
     if (sanitizedBody.newPassword) {
         if (!sanitizedBody.currentPassword) {
-            throw new HttpError(400, "Current password required", ["Current password required"]);
+            throw new HttpError(400, "Bad Request", ["Current password required"]);
         }
         const passwordValid = await verify(currentUser.password as string, sanitizedBody.currentPassword);
         if (!passwordValid) {
@@ -52,10 +52,10 @@ export async function update(ctx: Context): Promise<void> {
     }
 
     if (updateFields.length === 0) {
-        throw new HttpError(400, "No valid fields to update", ["Please fill in fields that you want to update"]);
+        throw new HttpError(400, "Bad Request", ["Please fill in fields that you want to update"]);
     }
 
-    const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`;
+    const query = `UPDATE user SET ${updateFields.join(", ")} WHERE id = ?`;
     updateValues.push(verifiedAccessToken.id);
     db.query(query, updateValues);
 
@@ -66,7 +66,7 @@ export async function update(ctx: Context): Promise<void> {
         id: updatedUser.id,
         email: updatedUser.email,
         name: updatedUser.name,
-        role: updatedUser.role,
+        image: updatedUser.image
     };
 
     await logMessage("info", "User profile updated", updatedUser.id as string);

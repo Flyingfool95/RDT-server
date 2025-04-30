@@ -1,3 +1,5 @@
+// deno-lint-ignore-file no-explicit-any
+
 import { Context, Next } from "jsr:@oak/oak";
 import { HttpError } from "../features/utils/classes.ts";
 import { sendResponse } from "../features/utils/helpers.ts";
@@ -8,7 +10,7 @@ export async function errorHandler(ctx: Context, next: Next) {
     try {
         await next();
     } catch (error: any) {
-        logMessage("error", error.message);
+        logMessage("error", `${error.message}: ${error.errors.join(", ") ?? "error"}`);
 
         if (error instanceof HttpError) {
             sendResponse(ctx, error.status, null, "Http Error", error.errors);

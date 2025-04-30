@@ -10,7 +10,7 @@ export async function deleteUser(ctx: Context): Promise<void> {
     const userData = getUserIfExists("id", verifiedAccessToken.id);
     if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
-    db.query(`DELETE FROM users WHERE id = ?`, [verifiedAccessToken.id]);
+    db.query(`DELETE FROM user WHERE id = ?`, [verifiedAccessToken.id]);
     deleteJWTTokens(ctx);
     await logMessage("info", "User deleted", verifiedAccessToken.id);
     sendResponse(ctx, 200, null, "User deleted");

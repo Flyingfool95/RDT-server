@@ -20,7 +20,6 @@ export async function authCheck(ctx: Context): Promise<void> {
         id: string;
         email: string;
         name: string;
-        role: string;
         exp: number;
     };
 
@@ -37,7 +36,6 @@ export async function authCheck(ctx: Context): Promise<void> {
             id: userData.id,
             email: userData.email,
             name: userData.name,
-            role: userData.role,
         };
 
         const newRefreshToken = await generateJWT(payload, REFRESH_TOKEN_EXP);
@@ -48,13 +46,23 @@ export async function authCheck(ctx: Context): Promise<void> {
 
         // Optionally blacklist the old refresh token here
 
-        return sendResponse(ctx, 200, payload, "Token refreshed");
+        return sendResponse(
+            ctx,
+            200,
+            {
+                id: userData.id,
+                email: userData.email,
+                name: userData.name,
+                image: userData.image,
+            },
+            "Token refreshed"
+        );
     }
 
     sendResponse(ctx, 200, {
         id: userData.id,
         email: userData.email,
         name: userData.name,
-        role: userData.role,
+        image: userData.image,
     });
 }

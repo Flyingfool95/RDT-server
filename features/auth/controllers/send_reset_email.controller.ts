@@ -1,9 +1,10 @@
 import { Context } from "jsr:@oak/oak";
-import { sendResponse, sanitizeStrings } from "../../utils/helpers.ts";
+import { sendResponse, sanitizeStrings, getUserIfExists } from "../../utils/helpers.ts";
 import { sendResetEmailSchema } from "../../../zod/auth.ts";
 import { generateJWT } from "../../utils/jwt.ts";
 import { sendMail } from "../../utils/SMTP.ts";
 import { logMessage } from "../../utils/logger.ts";
+import { HttpError } from "../../utils/classes.ts";
 
 export async function sendResetEmail(ctx: Context): Promise<void> {
     const body = await ctx.request.body.json();
@@ -11,6 +12,9 @@ export async function sendResetEmail(ctx: Context): Promise<void> {
     const sanitizedBody = sanitizeStrings({ email: verifiedBody }) as {
         email: string;
     };
+
+    const userData = getUserIfExists("email", sanitizedBody.email);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     const token = await generateJWT({ email: sanitizedBody.email }, 300);
 
