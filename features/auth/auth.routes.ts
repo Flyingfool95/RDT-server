@@ -18,7 +18,7 @@ authRoutes.post("/send-reset-email", rateLimiter, sendResetEmail);
 
 authRoutes.get("/auth-check", jwtChecker, authCheck);
 
-authRoutes.delete("/delete", deleteUser);
+authRoutes.delete("/delete", jwtChecker, deleteUser);
 authRoutes.get("/logout", logout);
 
 export default authRoutes;
