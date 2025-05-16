@@ -1,12 +1,11 @@
-import { Context } from "jsr:@oak/oak";
-import { getUserIfExists, sendResponse, verifyAccessToken } from "../../utils/helpers.ts";
-import { HttpError } from "../../utils/classes.ts";
-import { resize } from "https://deno.land/x/deno_image@0.0.4/mod.ts";
 import db from "../../../db/db.ts";
+import { Context } from "jsr:@oak/oak";
+import { resize } from "https://deno.land/x/deno_image@0.0.4/mod.ts";
+import { getUserIfExists, sendResponse } from "../../utils/helpers.ts";
+import { HttpError } from "../../utils/classes.ts";
 
 export async function updateImage(ctx: Context) {
-    const verifiedAccessToken = await verifyAccessToken(ctx);
-    const user = getUserIfExists("id", verifiedAccessToken.id);
+    const user = getUserIfExists("id", ctx.state.payload.id);
     if (!user) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     const contentType = ctx.request.headers.get("content-type") || "";

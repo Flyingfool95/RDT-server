@@ -1,16 +1,14 @@
+import db from "../../../db/db.ts";
 import { Context } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
+import { HttpError } from "../../utils/classes.ts";
 import { getUserIfExists, sendResponse, sanitizeStrings } from "../../utils/helpers.ts";
 import { updateUserSchema } from "../../../zod/auth.ts";
-import { HttpError } from "../../utils/classes.ts";
 import { generateSalt } from "../../utils/helpers.ts";
-import { verifyAccessToken } from "../../utils/helpers.ts";
 import { logMessage } from "../../utils/logger.ts";
-import db from "../../../db/db.ts";
 
 export async function update(ctx: Context): Promise<void> {
-    const verifiedAccessToken = await verifyAccessToken(ctx);
-    const currentUser = getUserIfExists("id", verifiedAccessToken.id);
+    const currentUser = getUserIfExists("id", ctx.state.payload.id);
     if (!currentUser) {
         throw new HttpError(401, "Unauthorized", ["User not found"]);
     }
@@ -56,17 +54,17 @@ export async function update(ctx: Context): Promise<void> {
     }
 
     const query = `UPDATE user SET ${updateFields.join(", ")} WHERE id = ?`;
-    updateValues.push(verifiedAccessToken.id);
+    updateValues.push(ctx.state.payload.id);
     db.query(query, updateValues);
 
-    const updatedUser = getUserIfExists("id", verifiedAccessToken.id);
+    const updatedUser = getUserIfExists("id", ctx.state.payload.id);
     if (!updatedUser) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     const safeUser = {
         id: updatedUser.id,
         email: updatedUser.email,
         name: updatedUser.name,
-        image: updatedUser.image
+        image: updatedUser.image,
     };
 
     await logMessage("info", "User profile updated", updatedUser.id as string);

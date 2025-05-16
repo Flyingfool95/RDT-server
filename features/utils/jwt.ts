@@ -1,12 +1,10 @@
 import { Algorithm } from "https://deno.land/x/djwt@v3.0.2/algorithm.ts";
-import { create, verify, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
+import { create, verify, decode, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 
 const secret = Deno.env.get("JWT_SECRET");
-
 if (!secret) {
     throw new Error("JWT_SECRET is not set in environment variables.");
 }
-
 const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -28,4 +26,14 @@ export async function verifyJWT(token: string): Promise<Record<string, unknown> 
     } catch (error) {
         return null;
     }
+}
+
+export function decodeJWT(token: string) {
+    const tokenParts = decode(token);
+
+    return {
+        headers: tokenParts[0],
+        payload: tokenParts[1],
+        signature: tokenParts[2],
+    };
 }
