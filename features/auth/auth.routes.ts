@@ -13,7 +13,7 @@ const authRoutes = new Router();
 
 authRoutes.post("/register", rateLimiter, register);
 authRoutes.post("/login", rateLimiter, login);
-authRoutes.post("/reset-password", rateLimiter, jwtChecker, resetPassword);
+authRoutes.post("/reset-password", rateLimiter, resetPassword);
 authRoutes.post("/send-reset-email", rateLimiter, sendResetEmail);
 
 authRoutes.get("/auth-check", jwtChecker, authCheck);

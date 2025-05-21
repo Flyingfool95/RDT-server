@@ -1,10 +1,11 @@
 import { Context } from "jsr:@oak/oak";
 import { verify } from "jsr:@felix/argon2";
-import { getUserIfExists, sanitizeStrings, sendResponse, setCookie } from "../../utils/helpers.ts";
+import { getUserIfExists, sanitizeStrings, sendResponse } from "../../utils/helpers.ts";
 import { loginSchema } from "../../../zod/auth.ts";
 import { HttpError } from "../../utils/classes.ts";
 import { generateJWT } from "../../utils/jwt.ts";
 import { logMessage } from "../../utils/logger.ts";
+import { setCookie } from "../../utils/cookies.ts";
 
 const REFRESH_TOKEN_EXP = 432000;
 const ACCESS_TOKEN_EXP = 900;
