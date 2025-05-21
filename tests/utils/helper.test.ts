@@ -3,19 +3,16 @@
 import { assertStrictEquals, assertThrows, assertEquals, assertRejects, assert } from "jsr:@std/assert";
 import { z } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import db from "../../db/db.ts";
-import { generateJWT } from "../../features/utils/jwt.ts";
+import { generateJWT, verifyAccessToken } from "../../features/utils/jwt.ts";
 import { HttpError } from "../../features/utils/classes.ts";
 import {
     sendResponse,
     sanitizeStrings,
-    validateData,
-    generateSalt,
-    setCookie,
     validateInputData,
-    verifyAccessToken,
-    deleteJWTTokens,
+    generateSalt,
     getUserIfExists,
 } from "../../features/utils/helpers.ts";
+import { removeCookies, setCookie } from "../../features/utils/cookies.ts";
 
 // Fake context interface to simulate a request/response environment.
 interface FakeContext {
@@ -133,18 +130,18 @@ Deno.test("sanitizeStrings should leave non-string values unchanged", () => {
 });
 
 // --- Data Validation Tests ---
-Deno.test("validateData works with valid data", () => {
+Deno.test("validateInputData works with valid data", () => {
     const schema = z.object({ name: z.string() });
     const data = { name: "John" };
-    const result = validateData(schema, data);
+    const result = validateInputData(schema, data);
     assertEquals(result, data);
 });
 
-Deno.test("validateData throws on invalid data", () => {
+Deno.test("validateInputData throws on invalid data", () => {
     const schema = z.object({ name: z.string() });
     assertThrows(
         () => {
-            validateData(schema, {});
+            validateInputData(schema, {});
         },
         HttpError,
         "Validation error"
@@ -181,11 +178,11 @@ Deno.test("Cookie management", async (t) => {
         Deno.env.delete("DENO_ENV");
     });
 
-    await t.step("deleteJWTTokens deletes both tokens", () => {
+    await t.step("removeCookies deletes both tokens", () => {
         const ctx = createFakeContext();
         ctx.cookies.set("access_token", "some_token");
         ctx.cookies.set("refresh_token", "some_token");
-        deleteJWTTokens(ctx as any);
+        removeCookies(ctx as any, ["access_token", "refresh_token"]);
         assertStrictEquals(ctx.cookies.get("access_token"), undefined);
         assertStrictEquals(ctx.cookies.get("refresh_token"), undefined);
     });
@@ -256,12 +253,9 @@ Deno.test("JWT verification", async (t) => {
 Deno.test("getUserIfExists returns user data if it exists", () => {
     const originalQuery = db.query;
     try {
-        db.query = ((
-            _query: string,
-            params: any[]
-        ): [number, string, string, string, string, string, string, string][] => {
+        db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
             if (params[0] === "existing@example.com") {
-                return [[1, "existing@example.com", "Existing User", "ignored", "user", "hashedpassword", "", ""]];
+                return [[1, "Existing User", "existing@example.com", "hashedpassword", "", ""]];
             }
             return [];
         }) as typeof db.query;
@@ -269,8 +263,8 @@ Deno.test("getUserIfExists returns user data if it exists", () => {
         const user = getUserIfExists("email", "existing@example.com");
         assertEquals(user, {
             id: 1,
-            email: "existing@example.com",
             name: "Existing User",
+            email: "existing@example.com",
             password: "hashedpassword",
             createdAt: "",
             image: "",

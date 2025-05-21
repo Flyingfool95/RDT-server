@@ -1,7 +1,8 @@
 import { Context } from "jsr:@oak/oak";
-import { deleteJWTTokens, getUserIfExists, sendResponse, setCookie } from "../features/utils/helpers.ts";
+import { getUserIfExists } from "../features/utils/helpers.ts";
 import { HttpError } from "../features/utils/classes.ts";
 import { generateJWT, verifyJWT } from "../features/utils/jwt.ts";
+import { removeCookies, setCookie } from "../features/utils/cookies.ts";
 
 export async function jwtChecker(ctx: Context, next: any) {
     const REFRESH_TOKEN_EXP = 432000;
@@ -12,7 +13,7 @@ export async function jwtChecker(ctx: Context, next: any) {
     const refreshToken = await ctx.cookies.get("refresh_token");
 
     if (!refreshToken) {
-        deleteJWTTokens(ctx);
+        removeCookies(ctx, ["access_token", "refresh_token"]);
         throw new HttpError(401, "Unauthorized", ["No refresh token found"]);
     }
 
@@ -24,12 +25,12 @@ export async function jwtChecker(ctx: Context, next: any) {
     };
 
     if (!verifiedRefreshToken) {
-        deleteJWTTokens(ctx);
+        removeCookies(ctx, ["access_token", "refresh_token"]);
         throw new HttpError(401, "Unauthorized", ["Invalid tokens"]);
     }
 
     if (!accessToken && verifiedRefreshToken.exp < currentTime) {
-        deleteJWTTokens(ctx);
+        removeCookies(ctx, ["access_token", "refresh_token"]);
         throw new HttpError(401, "Unauthorized", ["Expired tokens"]);
     }
 

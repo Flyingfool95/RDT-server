@@ -1,5 +1,7 @@
 import { Algorithm } from "https://deno.land/x/djwt@v3.0.2/algorithm.ts";
 import { create, verify, decode, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
+import { HttpError } from "./classes.ts";
+import { Context } from "jsr:@oak/oak";
 
 const secret = Deno.env.get("JWT_SECRET");
 if (!secret) {
@@ -37,3 +39,27 @@ export function decodeJWT(token: string) {
         signature: tokenParts[2],
     };
 }
+
+export async function verifyAccessToken(ctx: Context) {
+    const accessToken = await ctx.cookies.get("access_token");
+    if (!accessToken) throw new HttpError(401, "Unauthorized", ["Missing access token"]);
+
+    const verifiedAccessToken = (await verifyJWT(accessToken)) as {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        exp: number;
+    };
+
+    if (!verifiedAccessToken) {
+        ctx.cookies.delete("refresh_token");
+        ctx.cookies.delete("access_token");
+
+        throw new HttpError(401, "Unauthorized", ["Access token expired"]);
+    }
+
+    return verifiedAccessToken;
+}
+
+
