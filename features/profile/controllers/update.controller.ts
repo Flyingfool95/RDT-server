@@ -2,69 +2,87 @@ import db from "../../../db/db.ts";
 import { Context } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
 import { HttpError } from "../../utils/classes.ts";
-import { getUserIfExists, sendResponse, getSecureBody } from "../../utils/helpers.ts";
+import { sendResponse, getSecureBody, getIfExists, optimizeImage } from "../../utils/helpers.ts";
 import { updateUserSchema } from "../../../zod/auth.ts";
 import { generateSalt } from "../../utils/helpers.ts";
 import { logMessage } from "../../utils/logger.ts";
 
 export async function update(ctx: Context): Promise<void> {
-    const currentUser = getUserIfExists("id", ctx.state.payload.id);
-    if (!currentUser) {
-        throw new HttpError(401, "Unauthorized", ["User not found"]);
-    }
+    const userId = ctx.state.user.id;
+    const currentUser = getIfExists("user", "id", userId);
+    if (!currentUser) throw new HttpError(401, "Unauthorized", ["User not found"]);
 
     const body = (await getSecureBody(ctx, updateUserSchema)) as {
-        email: string;
-        name: string;
-        newPassword: string;
-        currentPassword: string;
+        data: {
+            image?: File;
+            email?: string;
+            name?: string;
+            newPassword?: string;
+            currentPassword?: string;
+        };
+        files: {
+            image?: File[];
+        };
     };
 
-    const updateFields: string[] = [];
-    const updateValues: any[] = [];
+    let updated = false;
 
-    if (body.newPassword) {
-        if (!body.currentPassword) {
+    // Handle password change
+    if (body.data.newPassword !== undefined) {
+        if (!body.data.currentPassword) {
             throw new HttpError(400, "Bad Request", ["Current password required"]);
         }
-        const passwordValid = await verify(currentUser.password as string, body.currentPassword);
-        if (!passwordValid) {
+
+        const isValid = await verify(currentUser.password as string, body.data.currentPassword);
+        if (!isValid) {
             throw new HttpError(401, "Unauthorized", ["Incorrect current password"]);
         }
-        updateFields.push("password = ?");
+
         const salt = generateSalt(24);
-        const hashedPassword = await hash(body.newPassword, { salt });
-        updateValues.push(hashedPassword);
+        const hashedPassword = await hash(body.data.newPassword, { salt });
+        db.query(`UPDATE user SET password = ? WHERE id = ?`, [hashedPassword, userId]);
+        updated = true;
     }
 
-    if (body.email) {
-        updateFields.push("email = ?");
-        updateValues.push(body.email);
+    // Handle email update
+    if (body.data.email !== undefined && body.data.email !== currentUser.email) {
+        db.query(`UPDATE user SET email = ? WHERE id = ?`, [body.data.email, userId]);
+        updated = true;
     }
 
-    if (body.name) {
-        updateFields.push("name = ?");
-        updateValues.push(body.name);
+    // Handle name update
+    if (body.data.name !== undefined && body.data.name !== currentUser.name) {
+        db.query(`UPDATE user SET name = ? WHERE id = ?`, [body.data.name, userId]);
+        updated = true;
     }
 
-    if (updateFields.length === 0) {
-        throw new HttpError(400, "Bad Request", ["Please fill in fields that you want to update"]);
+    // Handle image update
+    if (body.files.image !== undefined) {
+        const optimizedImage = await optimizeImage(body.files.image[0]);
+
+        db.query(`UPDATE user SET image = ? WHERE id = ?`, [optimizedImage, userId]);
+        updated = true;
     }
 
-    const query = `UPDATE user SET ${updateFields.join(", ")} WHERE id = ?`;
-    updateValues.push(ctx.state.payload.id);
-    db.query(query, updateValues);
+    if (!updated) {
+        throw new HttpError(400, "Bad Request", ["No valid fields provided to update"]);
+    }
 
-    const updatedUser = getUserIfExists("id", ctx.state.payload.id);
-    if (!updatedUser) throw new HttpError(401, "Unauthorized", ["User not found"]);
+    const updatedUser = getIfExists("user", "id", userId);
+    if (!updatedUser) throw new HttpError(404, "Unauthorized", ["User not found"]);
 
-    const safeUser = {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        image: updatedUser.image,
-    };
-
-    await logMessage("info", "User profile updated", updatedUser.id as string);
-    sendResponse(ctx, 200, safeUser, "User updated");
+    await logMessage("info", "User profile updated", userId);
+    sendResponse(
+        ctx,
+        200,
+        {
+            user: {
+                id: updatedUser.id,
+                email: updatedUser.email,
+                name: updatedUser.name,
+                image: updatedUser.image,
+            },
+        },
+        "User updated successfully"
+    );
 }

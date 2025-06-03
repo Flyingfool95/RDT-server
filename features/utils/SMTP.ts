@@ -29,6 +29,7 @@ export async function sendMail(
             html,
         });
     } catch (error) {
+        console.log(error);
         throw new HttpError(500, "Something went wrong", ["Sending email failed"]);
     }
 }

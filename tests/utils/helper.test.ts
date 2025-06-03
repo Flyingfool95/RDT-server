@@ -10,7 +10,7 @@ import {
     sanitizeStrings,
     validateInputData,
     generateSalt,
-    getUserIfExists,
+    getIfExists,
 } from "../../features/utils/helpers.ts";
 import { removeCookies, setCookie } from "../../features/utils/cookies.ts";
 
@@ -130,14 +130,21 @@ Deno.test("sanitizeStrings should leave non-string values unchanged", () => {
 });
 
 // --- Data Validation Tests ---
-Deno.test("validateInputData works with valid data", () => {
+Deno.test("validateInputData passes with valid name schema", () => {
     const schema = z.object({ name: z.string() });
     const data = { name: "John" };
     const result = validateInputData(schema, data);
     assertEquals(result, data);
 });
 
-Deno.test("validateInputData throws on invalid data", () => {
+Deno.test("validateInputData passes with valid email schema", () => {
+    const schema = z.object({ email: z.string().email() });
+    const data = { email: "test@example.com" };
+    const result = validateInputData(schema, data);
+    assertEquals(result, data);
+});
+
+Deno.test("validateInputData throws on missing required name field", () => {
     const schema = z.object({ name: z.string() });
     assertThrows(
         () => {
@@ -146,6 +153,13 @@ Deno.test("validateInputData throws on invalid data", () => {
         HttpError,
         "Validation error"
     );
+});
+
+Deno.test("validateInputData throws on invalid email format", () => {
+    const schema = z.object({ email: z.string().email() });
+    assertThrows(() => {
+        validateInputData(schema, { email: "invalid" });
+    }, HttpError); // You can use HttpError if that's consistent with your function
 });
 
 // --- Salt Generation Tests ---
@@ -182,25 +196,13 @@ Deno.test("Cookie management", async (t) => {
         const ctx = createFakeContext();
         ctx.cookies.set("access_token", "some_token");
         ctx.cookies.set("refresh_token", "some_token");
-        removeCookies(ctx as any, ["access_token", "refresh_token"]);
+        removeCookies(ctx as any, [
+            { name: "access_token", path: "/" },
+            { name: "refresh_token", path: "/api/v1/auth/refresh-tokens" },
+        ]);
         assertStrictEquals(ctx.cookies.get("access_token"), undefined);
         assertStrictEquals(ctx.cookies.get("refresh_token"), undefined);
     });
-});
-
-// --- Input Data Validation Tests ---
-Deno.test("validateInputData works with valid data", () => {
-    const schema = z.object({ email: z.string().email() });
-    const data = { email: "test@example.com" };
-    const result = validateInputData(schema, data);
-    assertEquals(result, data);
-});
-
-Deno.test("validateInputData throws on invalid data", () => {
-    const schema = z.object({ email: z.string().email() });
-    assertThrows(() => {
-        validateInputData(schema, { email: "invalid" });
-    }, Error);
 });
 
 // --- JWT Verification Tests ---
@@ -250,17 +252,34 @@ Deno.test("JWT verification", async (t) => {
 });
 
 // --- Database Query Tests ---
-Deno.test("getUserIfExists returns user data if it exists", () => {
+Deno.test("getIfExists returns user data if it exists", () => {
     const originalQuery = db.query;
+
     try {
-        db.query = ((_query: string, params: any[]): [number, string, string, string, string, string][] => {
-            if (params[0] === "existing@example.com") {
-                return [[1, "Existing User", "existing@example.com", "hashedpassword", "", ""]];
+        db.query = ((query: string, params?: any[]) => {
+            if (query.startsWith("SELECT * FROM user WHERE email = ?")) {
+                if (params?.[0] === "existing@example.com") {
+                    return [[1, "Existing User", "existing@example.com", "hashedpassword", "", ""]];
+                }
+                return [];
             }
+
+            if (query.startsWith("PRAGMA table_info(user)")) {
+                return [
+                    [0, "id"],
+                    [1, "name"],
+                    [2, "email"],
+                    [3, "password"],
+                    [4, "createdAt"],
+                    [5, "image"],
+                ];
+            }
+
             return [];
         }) as typeof db.query;
 
-        const user = getUserIfExists("email", "existing@example.com");
+        const user = getIfExists("user", "email", "existing@example.com");
+
         assertEquals(user, {
             id: 1,
             name: "Existing User",
@@ -274,15 +293,28 @@ Deno.test("getUserIfExists returns user data if it exists", () => {
     }
 });
 
-Deno.test("getUserIfExists returns null if user does not exist", () => {
+Deno.test("getIfExists returns null if user does not exist", () => {
     const originalQuery = db.query;
+
     try {
-        db.query = ((_query: string): [number, string, string, string, string, string][] => {
-            return [];
+        db.query = ((query: string) => {
+            if (query.startsWith("SELECT * FROM user WHERE email = ?")) {
+                return [];
+            }
+
+            return [
+                [0, "id"],
+                [1, "name"],
+                [2, "email"],
+                [3, "password"],
+                [4, "createdAt"],
+                [5, "image"],
+            ];
         }) as typeof db.query;
 
-        const nonUser = getUserIfExists("email", "nonexistent@example.com");
-        assertStrictEquals(nonUser, null);
+        const user = getIfExists("user", "email", "nonexistent@example.com");
+
+        assertEquals(user, null);
     } finally {
         db.query = originalQuery;
     }

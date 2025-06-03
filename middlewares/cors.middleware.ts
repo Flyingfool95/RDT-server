@@ -1,9 +1,9 @@
-import { Context, Middleware } from "jsr:@oak/oak";
+import { Context, Middleware, Next } from "jsr:@oak/oak";
 import { logMessage } from "../features/utils/logger.ts";
 
 const allowedOrigins = new Set(["http://localhost:5173"]);
 
-const corsMiddleware: Middleware = async (ctx: Context, next) => {
+const corsMiddleware: Middleware = async (ctx: Context, next: Next) => {
     const origin = ctx.request.headers.get("Origin");
 
     if (origin && allowedOrigins.has(origin)) {

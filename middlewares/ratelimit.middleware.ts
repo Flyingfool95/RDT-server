@@ -1,6 +1,5 @@
-// deno-lint-ignore-file no-explicit-any
 
-import { Context } from "jsr:@oak/oak";
+import { Context, Next } from "jsr:@oak/oak";
 import { verifyJWT } from "../features/utils/jwt.ts";
 import { HttpError } from "../features/utils/classes.ts";
 import { logMessage } from "../features/utils/logger.ts";
@@ -10,7 +9,7 @@ const WINDOW_MS = 60 * 1000; // window duration in milliseconds (e.g. 1 minute)
 
 const clientRequests = new Map<string, { count: number; startTime: number }>();
 
-export async function rateLimiter(ctx: Context, next: any) {
+export async function rateLimiter(ctx: Context, next: Next) {
     const accessToken = await ctx.cookies.get("access_token");
 
     let verifiedAccessToken = null;

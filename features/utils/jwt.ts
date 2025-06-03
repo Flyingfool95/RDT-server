@@ -17,7 +17,7 @@ const key = await crypto.subtle.importKey(
 
 export async function generateJWT(payload: Record<string, unknown>, expiresIn: number = 3600): Promise<string> {
     const header = { alg: "HS512" as Algorithm, typ: "JWT" };
-    const exp = expiresIn === 0 ? Math.floor(Date.now() / 1000) - 10 : getNumericDate(expiresIn); // 🔥 Set past time
+    const exp = expiresIn === 0 ? Math.floor(Date.now() / 1000) - 10 : getNumericDate(expiresIn);
     const fullPayload = { ...payload, exp };
     return await create(header, fullPayload, key);
 }
@@ -25,7 +25,8 @@ export async function generateJWT(payload: Record<string, unknown>, expiresIn: n
 export async function verifyJWT(token: string): Promise<Record<string, unknown> | null> {
     try {
         return await verify(token, key);
-    } catch (error) {
+    } catch (error: unknown) {
+        console.log(error);
         return null;
     }
 }
@@ -61,5 +62,3 @@ export async function verifyAccessToken(ctx: Context) {
 
     return verifiedAccessToken;
 }
-
-

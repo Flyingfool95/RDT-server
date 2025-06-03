@@ -1,13 +1,16 @@
 import { Router } from "jsr:@oak/oak";
+
 import { rateLimiter } from "../../middlewares/ratelimit.middleware.ts";
+import { jwtChecker } from "../../middlewares/jwt.middleware.ts";
+
 import { register } from "./controllers/register.controller.ts";
 import { login } from "./controllers/login.controller.ts";
-import { logout } from "./controllers/logout.controller.ts";
-import { deleteUser } from "./controllers/delete.controller.ts";
 import { resetPassword } from "./controllers/reset_password.controller.ts";
 import { sendResetEmail } from "./controllers/send_reset_email.controller.ts";
-import { jwtChecker } from "../../middlewares/jwt.middleware.ts";
 import { authCheck } from "./controllers/auth_check.controller.ts";
+import { refreshTokens } from "./controllers/refresh_tokens.controller.ts";
+import { deleteUser } from "./controllers/delete.controller.ts";
+import { logout } from "./controllers/logout.controller.ts";
 
 const authRoutes = new Router();
 
@@ -17,6 +20,7 @@ authRoutes.post("/reset-password", rateLimiter, resetPassword);
 authRoutes.post("/send-reset-email", rateLimiter, sendResetEmail);
 
 authRoutes.get("/auth-check", jwtChecker, authCheck);
+authRoutes.get("/refresh-tokens", refreshTokens);
 
 authRoutes.delete("/delete", jwtChecker, deleteUser);
 authRoutes.get("/logout", logout);

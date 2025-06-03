@@ -47,4 +47,6 @@ export const resetPasswordSchema = z.object({
     password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-export const sendResetEmailSchema = z.string().email("Invalid email format");
+export const sendResetEmailSchema = z.object({
+    email: z.string().email("Invalid email format"),
+});

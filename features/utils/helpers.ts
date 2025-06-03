@@ -1,8 +1,9 @@
+import db from "../../db/db.ts";
 import xss from "npm:xss";
 import { Context } from "jsr:@oak/oak";
 import { ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
-import db from "../../db/db.ts";
 import { HttpError } from "./classes.ts";
+import { resize } from "https://deno.land/x/deno_image@0.0.4/mod.ts";
 
 export function sendResponse(
     ctx: Context,
@@ -58,28 +59,70 @@ export function generateSalt(length: number): Uint8Array {
     return salt;
 }
 
-export function getUserIfExists(field: string, value: string) {
-    const query = `SELECT * FROM user WHERE ${field} = ?`;
+export function getIfExists(table: string, field: string, value: string) {
+    const query = `SELECT * FROM ${table} WHERE ${field} = ?`;
+
     const results = db.query(query, [value]);
 
     if (!results || results.length === 0) return null;
 
-    const userData = {
-        id: results[0][0],
-        name: results[0][1],
-        email: results[0][2],
-        password: results[0][3],
-        createdAt: results[0][4],
-        image: results[0][5],
-    };
+    const columnNames = db.query(`PRAGMA table_info(${table})`).map((col: any[]) => col[1]);
 
-    return userData;
+    const objectResults: Record<string, unknown> = {};
+
+    columnNames.forEach((name, i) => {
+        objectResults[name] = results[0][i];
+    });
+
+    return objectResults;
 }
 
 export async function getSecureBody(ctx: Context, schema: ZodSchema) {
-    const body = await ctx.request.body.json();
-    const verifiedBody = schema.parse(body);
-    const sanitizedBody = sanitizeStrings(verifiedBody);
+    const contentType = ctx.request.headers.get("content-type") || "";
 
-    return sanitizedBody;
+    if (contentType.includes("application/json")) {
+        const body = await ctx.request.body.json();
+        const verifiedBody = schema.parse(body);
+        const sanitizedBody = sanitizeStrings(verifiedBody);
+        return { data: sanitizedBody, files: {} };
+    }
+
+    if (contentType.includes("multipart/form-data")) {
+        const formData = await ctx.request.body.formData();
+
+        const formObject: Record<string, unknown> = {};
+        const files: Record<string, File[]> = {};
+
+        for (const [key, value] of formData.entries()) {
+            if (value instanceof File) {
+                if (!files[key]) files[key] = [];
+                files[key].push(value);
+            } else {
+                formObject[kebabToCamel(key)] = value;
+            }
+        }
+        const verifiedBody = schema.parse(formObject);
+        const sanitizedBody = sanitizeStrings(verifiedBody);
+
+        return {
+            data: sanitizedBody,
+            files,
+        };
+    }
+
+    throw new Error("Unsupported Content-Type: " + contentType);
+}
+
+export async function optimizeImage(file: File | Blob) {
+    const buffer = new Uint8Array(await file.arrayBuffer());
+    const optimizedFile = await resize(buffer, {
+        width: 128,
+        height: 128,
+    });
+
+    return optimizedFile;
+}
+
+export function kebabToCamel(str: string) {
+    return str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 }
