@@ -1,4 +1,3 @@
-
 import { Context, Next } from "jsr:@oak/oak";
 import { verifyJWT } from "../features/utils/jwt.ts";
 import { HttpError } from "../features/utils/classes.ts";

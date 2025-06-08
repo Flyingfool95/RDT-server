@@ -8,9 +8,6 @@ import { logMessage } from "../../utils/logger.ts";
 import { setCookie } from "../../utils/cookies.ts";
 import { TypeLoginBody } from "../../utils/types.ts";
 
-const REFRESH_TOKEN_EXP = 432000;
-const ACCESS_TOKEN_EXP = 900;
-
 export async function login(ctx: Context): Promise<void> {
     const body = (await getSecureBody(ctx, loginSchema)) as TypeLoginBody;
 
@@ -30,14 +27,17 @@ export async function login(ctx: Context): Promise<void> {
         name: userData.name,
     };
 
-    const refreshToken = await generateJWT(payload, REFRESH_TOKEN_EXP);
-    const accessToken = await generateJWT(payload, ACCESS_TOKEN_EXP);
+    const refreshToken = await generateJWT(payload, parseInt(Deno.env.get("REFRESH_TOKEN_EXP") ?? "432000"));
+    const accessToken = await generateJWT(payload, parseInt(Deno.env.get("ACCESS_TOKEN_EXP") ?? "900"));
     setCookie(ctx, "refresh_token", refreshToken, {
         path: "/api/v1/auth/refresh-tokens",
-        maxAge: REFRESH_TOKEN_EXP,
+        maxAge: parseInt(Deno.env.get("REFRESH_TOKEN_EXP") ?? "432000"),
         httpOnly: true,
     });
-    setCookie(ctx, "access_token", accessToken, { maxAge: ACCESS_TOKEN_EXP, httpOnly: true });
+    setCookie(ctx, "access_token", accessToken, {
+        maxAge: parseInt(Deno.env.get("ACCESS_TOKEN_EXP") ?? "900"),
+        httpOnly: true,
+    });
 
     await logMessage("info", "User logged in", userData.id as string);
     sendResponse(

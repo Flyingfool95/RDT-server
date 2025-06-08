@@ -3,11 +3,9 @@ import { getIfExists, sendResponse } from "../../utils/helpers.ts";
 import { removeCookies, setCookie } from "../../utils/cookies.ts";
 import { HttpError } from "../../utils/classes.ts";
 import { generateJWT, verifyJWT } from "../../utils/jwt.ts";
+import db from "../../../db/db.ts";
 
 export async function refreshTokens(ctx: Context) {
-    const REFRESH_TOKEN_EXP = 432000;
-    const ACCESS_TOKEN_EXP = 900;
-
     const currentTime = Math.floor(Date.now() / 1000);
     const refreshToken = await ctx.cookies.get("refresh_token");
 
@@ -17,6 +15,11 @@ export async function refreshTokens(ctx: Context) {
             { name: "refresh_token", path: "/api/v1/auth/refresh-tokens" },
         ]);
         throw new HttpError(401, "Unauthorized", ["No refresh token found"]);
+    }
+
+    const isTokenBlacklisted = getIfExists("token_blacklist", "token", refreshToken);
+    if (isTokenBlacklisted) {
+        throw new HttpError(401, "Unauthorized", ["Invalid token"]);
     }
 
     const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {
@@ -43,17 +46,20 @@ export async function refreshTokens(ctx: Context) {
         name: userData.name,
     };
 
-    const newRefreshToken = await generateJWT(payload, REFRESH_TOKEN_EXP);
-    const newAccessToken = await generateJWT(payload, ACCESS_TOKEN_EXP);
+    const newRefreshToken = await generateJWT(payload, parseInt(Deno.env.get("REFRESH_TOKEN_EXP") ?? "432000"));
+    const newAccessToken = await generateJWT(payload, parseInt(Deno.env.get("ACCESS_TOKEN_EXP") ?? "900"));
 
     setCookie(ctx, "refresh_token", newRefreshToken, {
         path: "/api/v1/auth/refresh-tokens",
-        maxAge: REFRESH_TOKEN_EXP,
+        maxAge: parseInt(Deno.env.get("REFRESH_TOKEN_EXP") ?? "432000"),
         httpOnly: true,
     });
-    setCookie(ctx, "access_token", newAccessToken, { maxAge: ACCESS_TOKEN_EXP, httpOnly: true });
+    setCookie(ctx, "access_token", newAccessToken, {
+        maxAge: parseInt(Deno.env.get("ACCESS_TOKEN_EXP") ?? "900"),
+        httpOnly: true,
+    });
 
-    // Optionally blacklist the old refresh token here
+    db.query("INSERT INTO token_blacklist (id, token) VALUES (?, ?)", [crypto.randomUUID(), refreshToken]);
 
     sendResponse(ctx, 200, {
         user: {

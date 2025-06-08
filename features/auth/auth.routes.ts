@@ -19,10 +19,10 @@ authRoutes.post("/login", rateLimiter, login);
 authRoutes.post("/reset-password", rateLimiter, resetPassword);
 authRoutes.post("/send-reset-email", rateLimiter, sendResetEmail);
 
-authRoutes.get("/auth-check", jwtChecker, authCheck);
-authRoutes.get("/refresh-tokens", refreshTokens);
+authRoutes.get("/auth-check", rateLimiter, jwtChecker, authCheck);
+authRoutes.get("/refresh-tokens", rateLimiter, refreshTokens);
 
-authRoutes.delete("/delete", jwtChecker, deleteUser);
+authRoutes.delete("/delete", rateLimiter, jwtChecker, deleteUser);
 authRoutes.get("/logout", logout);
 
 export default authRoutes;

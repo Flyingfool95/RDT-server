@@ -3,8 +3,11 @@ import { corsMiddleware } from "./middlewares/cors.middleware.ts";
 import { errorHandler } from "./middlewares/error.middleware.ts";
 import router from "./routes/main.routes.ts";
 import "./db/db.ts";
+import { CRONStarter } from "./middlewares/cron.middleware.ts";
 
 const app = new Application();
+
+CRONStarter();
 
 app.use(corsMiddleware);
 app.use(errorHandler);

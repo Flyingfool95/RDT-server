@@ -18,12 +18,11 @@ export async function register(ctx: Context): Promise<void> {
         throw new HttpError(401, "Unauthorized", ["User already exists"]);
     }
 
-    db.query("INSERT INTO user (id, email, name, password, created_at, image) VALUES (?, ?, ?, ?, ?, ?)", [
+    db.query("INSERT INTO user (id, email, name, password, image) VALUES (?, ?, ?, ?, ?)", [
         id,
         body.data.email,
         "",
         hashedPassword,
-        new Date().toISOString(),
         "",
     ]);
 

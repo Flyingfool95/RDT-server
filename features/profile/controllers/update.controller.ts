@@ -71,18 +71,13 @@ export async function update(ctx: Context): Promise<void> {
     const updatedUser = getIfExists("user", "id", userId);
     if (!updatedUser) throw new HttpError(404, "Unauthorized", ["User not found"]);
 
+    const safeUser = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        image: updatedUser.image,
+    };
+
     await logMessage("info", "User profile updated", userId);
-    sendResponse(
-        ctx,
-        200,
-        {
-            user: {
-                id: updatedUser.id,
-                email: updatedUser.email,
-                name: updatedUser.name,
-                image: updatedUser.image,
-            },
-        },
-        "User updated successfully"
-    );
+    sendResponse(ctx, 200, { user: safeUser }, "User updated successfully");
 }
