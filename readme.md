@@ -1,6 +1,6 @@
 # React Deno Template – Client
 
-This template is designed to work out of the box with [RDT - Server](https://github.com/Flyingfool95/RDT-server).
+This template is designed to work out of the box with [RDT - Client](https://github.com/Flyingfool95/RDT-client).
 
 Its purpose is to provide a starting point for web applications with the following features already set up:
 
