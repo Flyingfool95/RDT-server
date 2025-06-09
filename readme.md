@@ -4,8 +4,6 @@ This template is designed to work out of the box with [RDT - Client](https://git
 
 Its purpose is to provide a starting point for web applications with the following features already set up:
 
----
-
 ## Features
 
 -   **[Oak](https://oakserver.org/)** – RESTful routing
