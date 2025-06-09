@@ -1,4 +1,4 @@
-# React Deno Template – Client
+# React Deno Template – Server
 
 This template is designed to work out of the box with [RDT - Client](https://github.com/Flyingfool95/RDT-client).
 
