@@ -1,80 +1,21 @@
-# 🦕 RDT Server – React Deno Template (Backend)
+# React Deno Template – Client
 
-This is the backend REST API for the **React Deno Template** (RDT), built using [Deno](https://deno.com/) and [Oak](https://oakserver.github.io/oak/). It provides a solid project starter including features like authentication, session management, SQLite database integration, and common backend tooling.
+This template is designed to work out of the box with [RDT - Server](https://github.com/Flyingfool95/RDT-server).
 
----
-
-## 🚀 Features
-
--   🔐 User Authentication (register, login, logout, reset password)
--   🧾 Session support
--   ⚙️ RESTful routing via Oak
--   🧠 Built-in error handling
--   🧱 SQLite by default, but DB-agnostic setup
--   📩 SMTP utility for email (e.g., password resets)
--   🛡️ CORS and rate limiting ready
--   🔁 Easy to extend for any project
+Its purpose is to provide a starting point for web applications with the following features already set up:
 
 ---
 
-## 📁 Project Structure
+## ✅ Server Features
 
-```
-main.ts                        # App entrypoint
-deno.json                      # Deno config
-.env.example                   # Env variable template
-
-/db
-  db.ts                        # DB config (SQLite by default)
-
-/features
-  /auth                        # Routes + controllers for auth
-  /utils                       # SMTP, JWT, helpers, etc.
-```
+-   **[Oak](https://oakserver.org/)** – RESTful routing
+-   **SQLite** as the default database (easily replaceable with another)
+-   **Authentication** using email and password
+-   **JWT sessions** for stateless authentication
+-   **Validation** with [Zod](https://github.com/colinhacks/zod)
+-   **Error handling** middleware
+-   **Rate limiting** middleware
+-   **CORS** middleware
+-   **[Croner](https://deno.land/x/croner@9.0.1-dev.3)** – Built-in cron jobs
 
 ---
-
-## 🛠️ Getting Started
-
-### Prerequisites
-
--   [Deno](https://deno.land/#installation) (v1.37+ recommended)
-
-### Installation
-
-```bash
-# Clone the repo
-git clone https://github.com/flyingfool95/RDT-server.git
-cd RDT-server
-
-# Copy and edit environment variables
-cp .env.example .env
-
-# Run the development server
-deno run dev
-```
----
-
-## 🗄️ Database
-
--   Uses **SQLite** by default via Deno's standard libraries.
--   Easily swappable to other databases by modifying `db.ts`.
-
----
-
-## 🧪 Testing
-
-- ✅ Unit tests are implemented for core helper functions in the `utils` directory.
-- 🔜 REST API endpoint testing is planned and currently under development.
-
----
-
-## 📄 License
-
-MIT
-
----
-
-## 💡 About
-
-This template was created to streamline the setup process for full-stack projects using Deno + React. It includes the backend essentials — so you can jump straight into building your app.
