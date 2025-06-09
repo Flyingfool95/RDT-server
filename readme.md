@@ -6,7 +6,7 @@ Its purpose is to provide a starting point for web applications with the followi
 
 ---
 
-## ✅ Server Features
+## Features
 
 -   **[Oak](https://oakserver.org/)** – RESTful routing
 -   **SQLite** as the default database (easily replaceable with another)
