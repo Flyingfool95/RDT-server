@@ -27,7 +27,6 @@ export async function update(ctx: Context): Promise<void> {
 
     let updated = false;
 
-    // Handle password change
     if (body.data.newPassword !== undefined) {
         if (!body.data.currentPassword) {
             throw new HttpError(400, "Bad Request", ["Current password required"]);
@@ -44,19 +43,16 @@ export async function update(ctx: Context): Promise<void> {
         updated = true;
     }
 
-    // Handle email update
     if (body.data.email !== undefined && body.data.email !== currentUser.email) {
         db.query(`UPDATE user SET email = ? WHERE id = ?`, [body.data.email, userId]);
         updated = true;
     }
 
-    // Handle name update
     if (body.data.name !== undefined && body.data.name !== currentUser.name) {
         db.query(`UPDATE user SET name = ? WHERE id = ?`, [body.data.name, userId]);
         updated = true;
     }
 
-    // Handle image update
     if (body.files.image !== undefined) {
         const optimizedImage = await optimizeImage(body.files.image[0]);
 

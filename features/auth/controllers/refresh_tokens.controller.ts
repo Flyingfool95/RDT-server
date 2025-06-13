@@ -17,11 +17,13 @@ export async function refreshTokens(ctx: Context) {
         throw new HttpError(401, "Unauthorized", ["No refresh token found"]);
     }
 
+    console.log(2);
     const isTokenBlacklisted = getIfExists("token_blacklist", "token", refreshToken);
     if (isTokenBlacklisted) {
         throw new HttpError(401, "Unauthorized", ["Invalid token"]);
     }
 
+    console.log(4);
     const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {
         id: string;
         email: string;
@@ -61,12 +63,5 @@ export async function refreshTokens(ctx: Context) {
 
     db.query("INSERT INTO token_blacklist (id, token) VALUES (?, ?)", [crypto.randomUUID(), refreshToken]);
 
-    sendResponse(ctx, 200, {
-        user: {
-            id: userData.id,
-            email: userData.email,
-            name: userData.name,
-            image: userData.image,
-        },
-    });
+    sendResponse(ctx, 200, null);
 }

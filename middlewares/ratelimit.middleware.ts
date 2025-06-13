@@ -3,7 +3,7 @@ import { verifyJWT } from "../features/utils/jwt.ts";
 import { HttpError } from "../features/utils/classes.ts";
 import { logMessage } from "../features/utils/logger.ts";
 
-const RATE_LIMIT = 10; // allowed requests per window
+const RATE_LIMIT = 20; // allowed requests per window
 const WINDOW_MS = 60 * 1000; // window duration in milliseconds (e.g. 1 minute)
 
 const clientRequests = new Map<string, { count: number; startTime: number }>();

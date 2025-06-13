@@ -89,7 +89,7 @@ export async function getSecureBody(ctx: Context, schema: ZodSchema) {
 
     if (contentType.includes("multipart/form-data")) {
         const formData = await ctx.request.body.formData();
-
+        
         const formObject: Record<string, unknown> = {};
         const files: Record<string, File[]> = {};
 
