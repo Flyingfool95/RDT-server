@@ -10,7 +10,6 @@ const clientRequests = new Map<string, { count: number; startTime: number }>();
 
 export async function rateLimiter(ctx: Context, next: Next) {
     const accessToken = await ctx.cookies.get("access_token");
-
     let verifiedAccessToken = null;
 
     if (accessToken) {

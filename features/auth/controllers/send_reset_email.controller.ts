@@ -8,6 +8,7 @@ import { HttpError } from "../../utils/classes.ts";
 import { TypeResetEmailBody } from "../../utils/types.ts";
 
 export async function sendResetEmail(ctx: Context): Promise<void> {
+
     const body = (await getSecureBody(ctx, sendResetEmailSchema)) as TypeResetEmailBody;
 
     const userData = getIfExists("user", "email", body.data.email);

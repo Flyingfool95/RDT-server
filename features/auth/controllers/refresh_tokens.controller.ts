@@ -17,13 +17,11 @@ export async function refreshTokens(ctx: Context) {
         throw new HttpError(401, "Unauthorized", ["No refresh token found"]);
     }
 
-    console.log(2);
     const isTokenBlacklisted = getIfExists("token_blacklist", "token", refreshToken);
     if (isTokenBlacklisted) {
         throw new HttpError(401, "Unauthorized", ["Invalid token"]);
     }
 
-    console.log(4);
     const verifiedRefreshToken = (await verifyJWT(refreshToken)) as {
         id: string;
         email: string;
