@@ -9,24 +9,24 @@ export async function errorHandler(ctx: Context, next: Next) {
         await next();
     } catch (error: unknown) {
         let message = "Unknown error";
-        let details: string[] = [];
+        let errors: string[] = [];
 
         if (error instanceof HttpError) {
             message = "Http Error";
-            details = error.errors ?? [];
-            sendResponse(ctx, error.status, null, message, details);
+            errors = error.errors ?? [];
+            sendResponse(ctx, error.status, null, message, errors);
         } else if (error instanceof SqliteError) {
             message = "SQL Error";
-            details = [(error as Error).message];
-            sendResponse(ctx, 400, null, message, details);
+            errors = [(error as Error).message];
+            sendResponse(ctx, 400, null, message, errors);
         } else if (error instanceof Error) {
             message = error.message;
-            details = [error.message];
-            sendResponse(ctx, 500, null, null, details);
+            errors = [error.message];
+            sendResponse(ctx, 500, null, null, errors);
         } else {
             sendResponse(ctx, 500, null, null, ["An unknown error occurred."]);
         }
 
-        logMessage("error", `${message} - ${details.join(", ")}`);
+        logMessage("error", `${message} - ${errors.join(", ")}`);
     }
 }

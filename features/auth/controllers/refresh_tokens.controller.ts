@@ -6,6 +6,7 @@ import { generateJWT, verifyJWT } from "../../utils/jwt.ts";
 import db from "../../../db/db.ts";
 
 export async function refreshTokens(ctx: Context) {
+
     const currentTime = Math.floor(Date.now() / 1000);
     const refreshToken = await ctx.cookies.get("refresh_token");
 
