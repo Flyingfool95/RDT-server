@@ -21,6 +21,7 @@ export async function sendMail(
     html: string
 ) {
     try {
+        console.log("Sending email to:", toMail);
         await mailClient.send({
             from: fromMail,
             to: toMail,
@@ -28,8 +29,9 @@ export async function sendMail(
             content,
             html,
         });
+        console.log("Email sent successfully");
     } catch (error) {
-        console.log(error);
+        console.error("Error sending email:", error);
         throw new HttpError(500, "Something went wrong", ["Sending email failed"]);
     }
 }
