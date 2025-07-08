@@ -9,28 +9,27 @@ export async function errorHandler(ctx: Context, next: Next) {
     try {
         await next();
     } catch (error: unknown) {
-        let message = "Unknown error";
+        let message = "Error";
         let errors: string[] = [];
 
         if (error instanceof HttpError) {
-            message = "Http Error";
+            message = "Error(1)";
             errors = error.errors ?? [];
             sendResponse(ctx, error.status, null, message, errors);
         } else if (error instanceof SqliteError) {
-            message = "SQL Error";
+            message = "Error(2)";
             errors = [(error as Error).message];
             sendResponse(ctx, 400, null, message, errors);
         } else if (error instanceof ZodError) {
-            console.log(error.issues);
-            message = "Validation Error";
+            message = "Error(3)";
             errors = error.issues.map((err) => err.message);
             sendResponse(ctx, 400, null, message, errors);
         } else if (error instanceof Error) {
-            message = error.message;
+            message = "Error(4)";
             errors = [error.message];
             sendResponse(ctx, 500, null, null, errors);
         } else {
-            sendResponse(ctx, 500, null, null, ["An unknown error occurred."]);
+            sendResponse(ctx, 500, null, message, ["An unknown error occurred."]);
         }
 
         logMessage("error", `${message} - ${errors.join(", ")}`);
