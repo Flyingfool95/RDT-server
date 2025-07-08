@@ -11,7 +11,6 @@ import { TypeResetPasswordBody } from "../../utils/types.ts";
 
 export async function resetPassword(ctx: Context): Promise<void> {
     const body = (await getSecureBody(ctx, resetPasswordSchema)) as TypeResetPasswordBody;
-
     const isTokenBlacklisted = getIfExists("token_blacklist", "token", body.data.token);
     if (isTokenBlacklisted) {
         throw new HttpError(401, "Unauthorized", ["Invalid token"]);

@@ -101,6 +101,7 @@ export async function getSecureBody(ctx: Context, schema: ZodSchema) {
                 formObject[kebabToCamel(key)] = value;
             }
         }
+
         const verifiedBody = schema.parse(formObject);
         const sanitizedBody = sanitizeStrings(verifiedBody);
 
