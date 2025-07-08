@@ -19,7 +19,7 @@ export async function resetPassword(ctx: Context): Promise<void> {
     const verifiedRefreshToken = (await verifyJWT(body.data.token)) as { email: string };
     if (!verifiedRefreshToken) {
         await logMessage("info", "Token expired");
-        throw new HttpError(401, "Unauthorized", ["Refresh token expired"]);
+        throw new HttpError(401, "Unauthorized", ["Token expired"]);
     }
 
     const userData = getIfExists("user", "email", verifiedRefreshToken.email);

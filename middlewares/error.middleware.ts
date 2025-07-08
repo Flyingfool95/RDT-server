@@ -19,6 +19,7 @@ export async function errorHandler(ctx: Context, next: Next) {
         } else if (error instanceof SqliteError) {
             message = "Error(2)";
             errors = [(error as Error).message];
+            logMessage("error", `${message} - ${errors.join(", ")}`);
             sendResponse(ctx, 400, null, message, errors);
         } else if (error instanceof ZodError) {
             message = "Error(3)";
@@ -27,11 +28,11 @@ export async function errorHandler(ctx: Context, next: Next) {
         } else if (error instanceof Error) {
             message = "Error(4)";
             errors = [error.message];
+            logMessage("error", `${message} - ${errors.join(", ")}`);
             sendResponse(ctx, 500, null, null, errors);
         } else {
+            logMessage("error", `${message} - ${errors.join(", ")}`);
             sendResponse(ctx, 500, null, message, ["An unknown error occurred."]);
         }
-
-        logMessage("error", `${message} - ${errors.join(", ")}`);
     }
 }

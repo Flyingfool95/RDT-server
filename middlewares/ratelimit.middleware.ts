@@ -36,7 +36,7 @@ export async function rateLimiter(ctx: Context, next: Next) {
 
     if (requestData.count > RATE_LIMIT) {
         logMessage("error", "Rate limit hit", clientId);
-        throw new HttpError(429, "Ratelimit reached", ["Too many requests. Please try again later."]);
+        throw new HttpError(429, "Rate limit hit", ["Too many requests."]);
     }
 
     await next();
