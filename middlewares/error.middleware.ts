@@ -2,6 +2,7 @@ import { Context, Next } from "jsr:@oak/oak";
 import { HttpError } from "../features/utils/classes.ts";
 import { sendResponse } from "../features/utils/helpers.ts";
 import { SqliteError } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
+import { ZodError } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import { logMessage } from "../features/utils/logger.ts";
 
 export async function errorHandler(ctx: Context, next: Next) {
@@ -18,6 +19,11 @@ export async function errorHandler(ctx: Context, next: Next) {
         } else if (error instanceof SqliteError) {
             message = "SQL Error";
             errors = [(error as Error).message];
+            sendResponse(ctx, 400, null, message, errors);
+        } else if (error instanceof ZodError) {
+            console.log(error.issues);
+            message = "Validation Error";
+            errors = error.issues.map((err) => err.message);
             sendResponse(ctx, 400, null, message, errors);
         } else if (error instanceof Error) {
             message = error.message;
