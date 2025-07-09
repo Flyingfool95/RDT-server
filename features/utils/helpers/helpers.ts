@@ -2,42 +2,42 @@ import db from "../../../db/db.ts";
 import xss from "npm:xss";
 import { Context } from "jsr:@oak/oak";
 import { ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
-import { HttpError } from "../classes/classes.ts";
 import { resize } from "https://deno.land/x/deno_image@0.0.4/mod.ts";
+import { SanitizeInput } from "./types.ts";
 
 export function sendResponse(
     ctx: Context,
     status: number,
     data: unknown = null,
     message: string | null = null,
-    errors: string[] | null = null
+    errors: string[] | { message: string; path: (string | number)[] }[] | null = null
 ) {
     ctx.response.status = status;
     ctx.response.body = {
         success: status >= 200 && status < 300,
         data: data ?? null,
         message,
-        errors: errors && errors.length ? errors : null,
+        errors,
     };
 }
 
-export function sanitizeStrings(data: unknown): unknown {
+export function sanitizeStrings<T extends SanitizeInput>(data: T): T {
     if (typeof data === "string") {
-        return xss(data);
+        return xss(data) as T;
     }
 
     if (Array.isArray(data)) {
-        return data.map((item) => sanitizeStrings(item));
+        return data.map((item) => sanitizeStrings(item)) as T;
     }
 
     if (data && typeof data === "object") {
-        const sanitizedObject: Record<string, unknown> = {};
+        const sanitizedObject: { [key: string]: SanitizeInput } = {};
         for (const key in data) {
             if (Object.hasOwnProperty.call(data, key)) {
-                sanitizedObject[key] = sanitizeStrings((data as Record<string, unknown>)[key]);
+                sanitizedObject[key] = sanitizeStrings((data as { [key: string]: SanitizeInput })[key]);
             }
         }
-        return sanitizedObject;
+        return sanitizedObject as T;
     }
 
     return data;
@@ -49,27 +49,37 @@ export function generateSalt(length: number): Uint8Array {
     return salt;
 }
 
-export function getIfExists(table: string, field: string, value: string) {
-    const query = `SELECT * FROM ${table} WHERE ${field} = ?`;
+const columnCache = new Map<string, string[]>();
 
-    const results = db.query(query, [value]);
+export function getIfExists(table: string, field: string, value: string): Record<string, unknown> | null {
+    const isValidIdentifier = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    if (!isValidIdentifier.test(table) || !isValidIdentifier.test(field)) {
+        throw new Error("Invalid table or field name.");
+    }
 
-    if (!results || results.length === 0) return null;
+    const query = `SELECT * FROM ${table} WHERE ${field} = ? LIMIT 1`;
+    const result = db.query(query, [value]);
 
-    const columnNames = db.query(`PRAGMA table_info(${table})`).map((col: any[]) => col[1]);
+    if (!result || result.length === 0) return null;
 
-    const objectResults: Record<string, unknown> = {};
+    let columnNames = columnCache.get(table);
+    if (!columnNames) {
+        columnNames = db.query(`PRAGMA table_info(${table})`).map((col: any[]) => col[1]);
+        columnCache.set(table, columnNames);
+    }
 
-    columnNames.forEach((name, i) => {
-        objectResults[name] = results[0][i];
+    const row = result[0];
+    const record: Record<string, unknown> = {};
+
+    columnNames.forEach((col, i) => {
+        record[col] = row[i];
     });
 
-    return objectResults;
+    return record;
 }
 
 export async function getSecureBody(ctx: Context, schema: ZodSchema) {
     const contentType = ctx.request.headers.get("content-type") || "";
-
     if (contentType.includes("application/json")) {
         const body = await ctx.request.body.json();
         const verifiedBody = schema.parse(body);
@@ -79,7 +89,6 @@ export async function getSecureBody(ctx: Context, schema: ZodSchema) {
 
     if (contentType.includes("multipart/form-data")) {
         const formData = await ctx.request.body.formData();
-
         const formObject: Record<string, unknown> = {};
         const files: Record<string, File[]> = {};
 
@@ -93,6 +102,7 @@ export async function getSecureBody(ctx: Context, schema: ZodSchema) {
         }
 
         const verifiedBody = schema.parse(formObject);
+
         const sanitizedBody = sanitizeStrings(verifiedBody);
 
         return {

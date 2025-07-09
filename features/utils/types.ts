@@ -4,27 +4,22 @@ export type BodyWithNoFiles<T> = {
     data: T;
     files: NoFiles;
 };
-export type LoginData = {
+export type LoginData = BodyWithNoFiles<{
     email: string;
     password: string;
-};
-export type RegisterData = {
+}>;
+export type RegisterData = BodyWithNoFiles<{
     email: string;
     password: string;
     confirmPassword: string;
-};
-export type ResetPasswordData = {
+}>;
+export type ResetPasswordData = BodyWithNoFiles<{
     token: string;
     password: string;
-};
-export type ResetEmailData = {
+}>;
+export type ResetEmailData = BodyWithNoFiles<{
     email: string;
-};
-
-export type TypeLoginBody = BodyWithNoFiles<LoginData>;
-export type TypeRegisterBody = BodyWithNoFiles<RegisterData>;
-export type TypeResetPasswordBody = BodyWithNoFiles<ResetPasswordData>;
-export type TypeResetEmailBody = BodyWithNoFiles<ResetEmailData>;
+}>;
 
 /* Cookies  */
 export type SetCookieOptions = {
