@@ -1,5 +1,5 @@
 import { Context } from "jsr:@oak/oak";
-import { SetCookieOptions } from "./types.ts";
+import { SetCookieOptions } from "../types.ts";
 
 export function setCookie(ctx: Context, name: string, value: string, options: SetCookieOptions = {}) {
     const {

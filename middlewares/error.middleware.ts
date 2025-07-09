@@ -1,9 +1,9 @@
 import { Context, Next } from "jsr:@oak/oak";
-import { HttpError } from "../features/utils/classes.ts";
-import { sendResponse } from "../features/utils/helpers.ts";
+import { HttpError } from "../features/utils/classes/classes.ts";
+import { sendResponse } from "../features/utils/helpers/helpers.ts";
 import { SqliteError } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { ZodError } from "https://deno.land/x/zod@v3.24.2/mod.ts";
-import { logMessage } from "../features/utils/logger.ts";
+import { logMessage } from "../features/utils/logger/logger.ts";
 
 export async function errorHandler(ctx: Context, next: Next) {
     try {

@@ -1,11 +1,11 @@
 import { Context } from "jsr:@oak/oak";
 import { verify } from "jsr:@felix/argon2";
-import { getIfExists, getSecureBody, sendResponse } from "../../utils/helpers.ts";
+import { getIfExists, getSecureBody, sendResponse } from "../../utils/helpers/helpers.ts";
 import { loginSchema } from "../../../zod/auth.ts";
-import { HttpError } from "../../utils/classes.ts";
-import { generateJWT } from "../../utils/jwt.ts";
-import { logMessage } from "../../utils/logger.ts";
-import { setCookie } from "../../utils/cookies.ts";
+import { HttpError } from "../../utils/classes/classes.ts";
+import { generateJWT } from "../../utils/jwt/jwt.ts";
+import { logMessage } from "../../utils/logger/logger.ts";
+import { setCookie } from "../../utils/cookies/cookies.ts";
 import { TypeLoginBody } from "../../utils/types.ts";
 
 export async function login(ctx: Context): Promise<void> {

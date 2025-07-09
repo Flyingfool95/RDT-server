@@ -1,12 +1,12 @@
 import db from "../../../db/db.ts";
 import { Context } from "jsr:@oak/oak";
 import { hash } from "jsr:@felix/argon2";
-import { sendResponse, getSecureBody, getIfExists } from "../../utils/helpers.ts";
+import { sendResponse, getSecureBody, getIfExists } from "../../utils/helpers/helpers.ts";
 import { resetPasswordSchema } from "../../../zod/auth.ts";
-import { HttpError } from "../../utils/classes.ts";
-import { verifyJWT } from "../../utils/jwt.ts";
-import { generateSalt } from "../../utils/helpers.ts";
-import { logMessage } from "../../utils/logger.ts";
+import { HttpError } from "../../utils/classes/classes.ts";
+import { verifyJWT } from "../../utils/jwt/jwt.ts";
+import { generateSalt } from "../../utils/helpers/helpers.ts";
+import { logMessage } from "../../utils/logger/logger.ts";
 import { TypeResetPasswordBody } from "../../utils/types.ts";
 
 export async function resetPassword(ctx: Context): Promise<void> {

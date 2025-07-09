@@ -1,10 +1,10 @@
 import db from "../../../db/db.ts";
 import { Context } from "jsr:@oak/oak";
 import { hash } from "jsr:@felix/argon2";
-import { generateSalt, sendResponse, getSecureBody, getIfExists } from "../../utils/helpers.ts";
+import { generateSalt, sendResponse, getSecureBody, getIfExists } from "../../utils/helpers/helpers.ts";
 import { registerSchema } from "../../../zod/auth.ts";
-import { HttpError } from "../../utils/classes.ts";
-import { logMessage } from "../../utils/logger.ts";
+import { HttpError } from "../../utils/classes/classes.ts";
+import { logMessage } from "../../utils/logger/logger.ts";
 import { TypeRegisterBody } from "../../utils/types.ts";
 
 export async function register(ctx: Context): Promise<void> {

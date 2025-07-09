@@ -1,8 +1,8 @@
 import { Context, Next } from "jsr:@oak/oak";
-import { HttpError } from "../features/utils/classes.ts";
-import { verifyJWT } from "../features/utils/jwt.ts";
-import { removeCookies } from "../features/utils/cookies.ts";
-import { getIfExists } from "../features/utils/helpers.ts";
+import { HttpError } from "../features/utils/classes/classes.ts";
+import { verifyJWT } from "../features/utils/jwt/jwt.ts";
+import { removeCookies } from "../features/utils/cookies/cookies.ts";
+import { getIfExists } from "../features/utils/helpers/helpers.ts";
 
 export async function jwtChecker(ctx: Context, next: Next) {
     const accessToken = await ctx.cookies.get("access_token");

@@ -1,8 +1,8 @@
 import { Context } from "jsr:@oak/oak";
-import { getIfExists, sendResponse } from "../../utils/helpers.ts";
-import { removeCookies, setCookie } from "../../utils/cookies.ts";
-import { HttpError } from "../../utils/classes.ts";
-import { generateJWT, verifyJWT } from "../../utils/jwt.ts";
+import { getIfExists, sendResponse } from "../../utils/helpers/helpers.ts";
+import { removeCookies, setCookie } from "../../utils/cookies/cookies.ts";
+import { HttpError } from "../../utils/classes/classes.ts";
+import { generateJWT, verifyJWT } from "../../utils/jwt/jwt.ts";
 import db from "../../../db/db.ts";
 
 export async function refreshTokens(ctx: Context) {

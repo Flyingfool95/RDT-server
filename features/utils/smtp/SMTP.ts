@@ -1,5 +1,5 @@
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
-import { HttpError } from "./classes.ts";
+import { HttpError } from "../classes/classes.ts";
 
 function createClient() {
     return new SMTPClient({

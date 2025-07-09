@@ -1,11 +1,11 @@
 import db from "../../../db/db.ts";
 import { Context } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
-import { HttpError } from "../../utils/classes.ts";
-import { sendResponse, getSecureBody, getIfExists, optimizeImage } from "../../utils/helpers.ts";
+import { HttpError } from "../../utils/classes/classes.ts";
+import { sendResponse, getSecureBody, getIfExists, optimizeImage } from "../../utils/helpers/helpers.ts";
 import { updateUserSchema } from "../../../zod/auth.ts";
-import { generateSalt } from "../../utils/helpers.ts";
-import { logMessage } from "../../utils/logger.ts";
+import { generateSalt } from "../../utils/helpers/helpers.ts";
+import { logMessage } from "../../utils/logger/logger.ts";
 
 export async function update(ctx: Context): Promise<void> {
     const userId = ctx.state.user.id;

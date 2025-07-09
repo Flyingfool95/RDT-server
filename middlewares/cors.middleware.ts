@@ -1,5 +1,5 @@
 import { Context, Middleware, Next } from "jsr:@oak/oak";
-import { logMessage } from "../features/utils/logger.ts";
+import { logMessage } from "../features/utils/logger/logger.ts";
 
 const allowedOrigins = new Set(["http://localhost:5173"]);
 

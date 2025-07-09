@@ -1,8 +1,8 @@
 import { Context } from "jsr:@oak/oak";
-import { getIfExists, sendResponse } from "../../utils/helpers.ts";
-import { HttpError } from "../../utils/classes.ts";
-import { removeCookies } from "../../utils/cookies.ts";
-import { logMessage } from "../../utils/logger.ts";
+import { getIfExists, sendResponse } from "../../utils/helpers/helpers.ts";
+import { HttpError } from "../../utils/classes/classes.ts";
+import { removeCookies } from "../../utils/cookies/cookies.ts";
+import { logMessage } from "../../utils/logger/logger.ts";
 import db from "../../../db/db.ts";
 
 export async function deleteUser(ctx: Context): Promise<void> {

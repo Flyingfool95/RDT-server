@@ -1,6 +1,6 @@
 import { Context } from "jsr:@oak/oak";
-import { sendResponse } from "../../utils/helpers.ts";
-import { removeCookies } from "../../utils/cookies.ts";
+import { sendResponse } from "../../utils/helpers/helpers.ts";
+import { removeCookies } from "../../utils/cookies/cookies.ts";
 
 export function logout(ctx: Context) {
     removeCookies(ctx, [

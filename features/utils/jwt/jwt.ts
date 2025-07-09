@@ -1,6 +1,6 @@
 import { Algorithm } from "https://deno.land/x/djwt@v3.0.2/algorithm.ts";
 import { create, verify, decode, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
-import { HttpError } from "./classes.ts";
+import { HttpError } from "../classes/classes.ts";
 import { Context } from "jsr:@oak/oak";
 
 const secret = Deno.env.get("JWT_SECRET");

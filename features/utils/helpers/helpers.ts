@@ -1,8 +1,8 @@
-import db from "../../db/db.ts";
+import db from "../../../db/db.ts";
 import xss from "npm:xss";
 import { Context } from "jsr:@oak/oak";
 import { ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
-import { HttpError } from "./classes.ts";
+import { HttpError } from "../classes/classes.ts";
 import { resize } from "https://deno.land/x/deno_image@0.0.4/mod.ts";
 
 export function sendResponse(
