@@ -43,16 +43,6 @@ export function sanitizeStrings(data: unknown): unknown {
     return data;
 }
 
-export function validateInputData(schema: ZodSchema, data: unknown) {
-    const result = schema.safeParse(data);
-
-    if (!result.success) {
-        throw new HttpError(400, "Validation error");
-    }
-
-    return result.data;
-}
-
 export function generateSalt(length: number): Uint8Array {
     const salt = new Uint8Array(length);
     crypto.getRandomValues(salt);
@@ -114,6 +104,10 @@ export async function getSecureBody(ctx: Context, schema: ZodSchema) {
     throw new Error("Unsupported Content-Type: " + contentType);
 }
 
+export function kebabToCamel(str: string) {
+    return str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+}
+
 export async function optimizeImage(file: File | Blob) {
     const buffer = new Uint8Array(await file.arrayBuffer());
     const optimizedFile = await resize(buffer, {
@@ -122,8 +116,4 @@ export async function optimizeImage(file: File | Blob) {
     });
 
     return optimizedFile;
-}
-
-export function kebabToCamel(str: string) {
-    return str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 }
