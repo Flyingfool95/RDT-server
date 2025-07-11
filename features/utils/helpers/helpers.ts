@@ -5,18 +5,16 @@ import { ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import { resize } from "https://deno.land/x/deno_image@0.0.4/mod.ts";
 import { SanitizeInput } from "./types.ts";
 
-export function sendResponse(
+export function sendResponse<T>(
     ctx: Context,
     status: number,
-    data: unknown = null,
-    message: string | null = null,
-    errors: string[] | { message: string; path: (string | number)[] }[] | null = null
+    data: { message: string | null; data: T | null } | null = null,
+    errors: Array<{ message: string; path: string }> | null = null
 ) {
     ctx.response.status = status;
     ctx.response.body = {
         success: status >= 200 && status < 300,
-        data: data ?? null,
-        message,
+        data,
         errors,
     };
 }

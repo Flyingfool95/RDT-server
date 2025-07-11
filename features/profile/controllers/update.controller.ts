@@ -75,5 +75,5 @@ export async function update(ctx: Context): Promise<void> {
     };
 
     await logMessage("info", "User profile updated", userId);
-    sendResponse(ctx, 200, { user: safeUser }, "User updated successfully");
+    sendResponse(ctx, 200, { message: "Profile updated", data: safeUser });
 }

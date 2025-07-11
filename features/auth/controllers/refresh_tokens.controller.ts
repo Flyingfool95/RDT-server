@@ -62,5 +62,5 @@ export async function refreshTokens(ctx: Context) {
 
     db.query("INSERT INTO token_blacklist (id, token) VALUES (?, ?)", [crypto.randomUUID(), refreshToken]);
 
-    sendResponse(ctx, 200, null);
+    sendResponse(ctx, 200);
 }

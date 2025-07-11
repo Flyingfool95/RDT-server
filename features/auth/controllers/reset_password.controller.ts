@@ -7,10 +7,9 @@ import { HttpError } from "../../utils/classes/classes.ts";
 import { verifyJWT } from "../../utils/jwt/jwt.ts";
 import { generateSalt } from "../../utils/helpers/helpers.ts";
 import { logMessage } from "../../utils/logger/logger.ts";
-import { TypeResetPasswordBody } from "../../utils/types.ts";
 
 export async function resetPassword(ctx: Context): Promise<void> {
-    const body = (await getSecureBody(ctx, resetPasswordSchema)) as TypeResetPasswordBody;
+    const body = await getSecureBody(ctx, resetPasswordSchema);
     const isTokenBlacklisted = getIfExists("token_blacklist", "token", body.data.token);
     if (isTokenBlacklisted) {
         throw new HttpError(401, "Unauthorized", ["Invalid token"]);
@@ -33,5 +32,5 @@ export async function resetPassword(ctx: Context): Promise<void> {
     db.query("INSERT INTO token_blacklist (id, token) VALUES (?, ?)", [crypto.randomUUID(), body.data.token]);
 
     await logMessage("info", "User set new password", verifiedRefreshToken.email);
-    sendResponse(ctx, 200, null, "New password created");
+    sendResponse(ctx, 200, { message: "New password created", data: null });
 }

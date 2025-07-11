@@ -6,10 +6,9 @@ import { HttpError } from "../../utils/classes/classes.ts";
 import { generateJWT } from "../../utils/jwt/jwt.ts";
 import { logMessage } from "../../utils/logger/logger.ts";
 import { setCookie } from "../../utils/cookies/cookies.ts";
-import { TypeLoginBody } from "../../utils/types.ts";
 
 export async function login(ctx: Context): Promise<void> {
-    const body = (await getSecureBody(ctx, loginSchema)) as TypeLoginBody;
+    const body = await getSecureBody(ctx, loginSchema);
 
     const userData = getIfExists("user", "email", body.data.email);
     if (!userData) {
@@ -40,10 +39,9 @@ export async function login(ctx: Context): Promise<void> {
     });
 
     await logMessage("info", "User logged in", userData.id as string);
-    sendResponse(
-        ctx,
-        200,
-        {
+    sendResponse(ctx, 200, {
+        message: "Logged in",
+        data: {
             user: {
                 id: userData.id,
                 email: userData.email,
@@ -51,6 +49,5 @@ export async function login(ctx: Context): Promise<void> {
                 image: userData.image,
             },
         },
-        "User logged in"
-    );
+    });
 }

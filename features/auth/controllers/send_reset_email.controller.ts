@@ -5,10 +5,9 @@ import { generateJWT } from "../../utils/jwt/jwt.ts";
 import { sendMail } from "../../utils/smtp/SMTP.ts";
 import { logMessage } from "../../utils/logger/logger.ts";
 import { HttpError } from "../../utils/classes/classes.ts";
-import { TypeResetEmailBody } from "../../utils/types.ts";
 
 export async function sendResetEmail(ctx: Context): Promise<void> {
-    const body = (await getSecureBody(ctx, sendResetEmailSchema)) as TypeResetEmailBody;
+    const body = await getSecureBody(ctx, sendResetEmailSchema);
 
     const userData = getIfExists("user", "email", body.data.email);
     if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
@@ -24,5 +23,5 @@ export async function sendResetEmail(ctx: Context): Promise<void> {
     );
 
     await logMessage("info", "Sending reset email", body.data.email);
-    sendResponse(ctx, 200, null, "Reset email sent");
+    sendResponse(ctx, 200, { message: "Email sent", data: null });
 }

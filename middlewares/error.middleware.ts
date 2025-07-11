@@ -10,29 +10,33 @@ export async function errorHandler(ctx: Context, next: Next) {
         await next();
     } catch (error: unknown) {
         let message = "Error";
-        let errors: string[] = [];
+        let errors: Array<string> | Array<{ message: string; path: string }> = [];
 
         if (error instanceof HttpError) {
-            message = "Error(1)";
+            message = "Http Error";
             errors = error.errors ?? [];
-            sendResponse(ctx, error.status, null, message, errors);
+            sendResponse(ctx, error.status, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
         } else if (error instanceof SqliteError) {
-            message = "Error(2)";
+            message = "DB Error";
             errors = [(error as Error).message];
             logMessage("error", `${message} - ${errors.join(", ")}`);
-            sendResponse(ctx, 400, null, message, errors);
+            sendResponse(ctx, 400, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
         } else if (error instanceof ZodError) {
-            message = "Error(3)";
-            errors = error.issues.map((err) => err.message);
-            sendResponse(ctx, 400, null, message, errors);
+            message = "Validation Error";
+            errors = error.issues.map((err) => {
+                return { message: err.message, path: err.path.join(", ") };
+            });
+
+            console.log(errors);
+            sendResponse(ctx, 400, null, errors);
         } else if (error instanceof Error) {
-            message = "Error(4)";
+            message = "Error";
             errors = [error.message];
             logMessage("error", `${message} - ${errors.join(", ")}`);
-            sendResponse(ctx, 500, null, null, errors);
+            sendResponse(ctx, 500, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
         } else {
             logMessage("error", `${message} - ${errors.join(", ")}`);
-            sendResponse(ctx, 500, null, message, ["An unknown error occurred."]);
+            sendResponse(ctx, 500, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
         }
     }
 }

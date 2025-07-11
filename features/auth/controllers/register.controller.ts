@@ -5,10 +5,9 @@ import { generateSalt, sendResponse, getSecureBody, getIfExists } from "../../ut
 import { registerSchema } from "../../../zod/auth.ts";
 import { HttpError } from "../../utils/classes/classes.ts";
 import { logMessage } from "../../utils/logger/logger.ts";
-import { TypeRegisterBody } from "../../utils/types.ts";
 
 export async function register(ctx: Context): Promise<void> {
-    const body = (await getSecureBody(ctx, registerSchema)) as TypeRegisterBody;
+    const body = await getSecureBody(ctx, registerSchema);
     const id = crypto.randomUUID();
     const salt = generateSalt(24);
     const hashedPassword = await hash(body.data.password, { salt });
@@ -27,5 +26,5 @@ export async function register(ctx: Context): Promise<void> {
     ]);
 
     await logMessage("info", "User registered", id);
-    sendResponse(ctx, 201, null, "User registered");
+    sendResponse(ctx, 201, { message: "User registered", data: null });
 }
