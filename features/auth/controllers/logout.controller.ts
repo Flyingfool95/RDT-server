@@ -7,5 +7,5 @@ export function logout(ctx: Context) {
         { name: "access_token", path: "/" },
         { name: "refresh_token", path: "/api/v1/auth/refresh-tokens" },
     ]);
-    sendResponse(ctx, 200, { message: "Logged out", data: null });
+    sendResponse(ctx, 200, { message: "Logged out" });
 }

@@ -4,39 +4,38 @@ import { sendResponse } from "../features/utils/helpers/helpers.ts";
 import { SqliteError } from "https://deno.land/x/sqlite@v3.9.1/mod.ts";
 import { ZodError } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import { logMessage } from "../features/utils/logger/logger.ts";
+import { ApiError } from "../features/utils/helpers/types.ts";
 
 export async function errorHandler(ctx: Context, next: Next) {
     try {
         await next();
     } catch (error: unknown) {
-        let message = "Error";
-        let errors: Array<string> | Array<{ message: string; path: string }> = [];
+        let errorType = "Error";
+        let errors: Array<ApiError> = [];
 
         if (error instanceof HttpError) {
-            message = "Http Error";
-            errors = error.errors ?? [];
-            sendResponse(ctx, error.status, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
+            errorType = "Http Error";
+            errors = [{ message: `${error.errors?.join(", ")}`, path: errorType }];
+            sendResponse(ctx, error.status, { errors });
         } else if (error instanceof SqliteError) {
-            message = "DB Error";
-            errors = [(error as Error).message];
-            logMessage("error", `${message} - ${errors.join(", ")}`);
-            sendResponse(ctx, 400, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
+            errorType = "DB Error";
+            errors = [{ message: error.message }];
+            logMessage("error", `${errorType} - ${error.message}`);
+            sendResponse(ctx, 400, { errors: [{ message: `${errors.join(", ")}`, path: errorType }] });
         } else if (error instanceof ZodError) {
-            message = "Validation Error";
+            errorType = "Validation Error";
             errors = error.issues.map((err) => {
                 return { message: err.message, path: err.path.join(", ") };
             });
-
-            console.log(errors);
-            sendResponse(ctx, 400, null, errors);
+            sendResponse(ctx, 400, { errors });
         } else if (error instanceof Error) {
-            message = "Error";
-            errors = [error.message];
-            logMessage("error", `${message} - ${errors.join(", ")}`);
-            sendResponse(ctx, 500, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
+            errorType = "Error";
+            errors = [{ message: error.message }];
+            logMessage("error", `${errorType} - ${error.message}`);
+            sendResponse(ctx, 500, { errors: [{ message: `${errors.join(", ")}`, path: errorType }] });
         } else {
-            logMessage("error", `${message} - ${errors.join(", ")}`);
-            sendResponse(ctx, 500, null, [{ message: `${message}: ${errors.join(", ")}`, path: "" }]);
+            logMessage("error", `${errorType} - ${errors.join(", ")}`);
+            sendResponse(ctx, 500, { errors: [{ message: `${errors.join(", ")}`, path: errorType }] });
         }
     }
 }

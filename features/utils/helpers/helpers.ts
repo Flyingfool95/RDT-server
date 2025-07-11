@@ -3,20 +3,33 @@ import xss from "npm:xss";
 import { Context } from "jsr:@oak/oak";
 import { ZodSchema } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 import { resize } from "https://deno.land/x/deno_image@0.0.4/mod.ts";
-import { SanitizeInput } from "./types.ts";
+import { ApiError, ApiResponse, SanitizeInput } from "./types.ts";
 
 export function sendResponse<T>(
     ctx: Context,
     status: number,
-    data: { message: string | null; data: T | null } | null = null,
-    errors: Array<{ message: string; path: string }> | null = null
+    {
+        message,
+        data,
+        errors,
+    }: {
+        message?: string;
+        data?: T;
+        errors?: ApiError[];
+    } = {}
 ) {
     ctx.response.status = status;
-    ctx.response.body = {
-        success: status >= 200 && status < 300,
+    const success = status >= 200 && status < 300;
+
+    const response: ApiResponse<T> = {
+        success,
+        status,
+        message,
         data,
         errors,
     };
+
+    ctx.response.body = response;
 }
 
 export function sanitizeStrings<T extends SanitizeInput>(data: T): T {

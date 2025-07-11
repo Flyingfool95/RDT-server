@@ -32,5 +32,5 @@ export async function resetPassword(ctx: Context): Promise<void> {
     db.query("INSERT INTO token_blacklist (id, token) VALUES (?, ?)", [crypto.randomUUID(), body.data.token]);
 
     await logMessage("info", "User set new password", verifiedRefreshToken.email);
-    sendResponse(ctx, 200, { message: "New password created", data: null });
+    sendResponse(ctx, 200, { message: "New password created" });
 }

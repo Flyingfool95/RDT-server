@@ -23,5 +23,5 @@ export async function sendResetEmail(ctx: Context): Promise<void> {
     );
 
     await logMessage("info", "Sending reset email", body.data.email);
-    sendResponse(ctx, 200, { message: "Email sent", data: null });
+    sendResponse(ctx, 200, { message: "Email sent" });
 }

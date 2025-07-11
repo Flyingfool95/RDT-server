@@ -26,5 +26,5 @@ export async function register(ctx: Context): Promise<void> {
     ]);
 
     await logMessage("info", "User registered", id);
-    sendResponse(ctx, 201, { message: "User registered", data: null });
+    sendResponse(ctx, 201, { message: "User registered" });
 }
