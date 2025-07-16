@@ -5,7 +5,7 @@ export const loginSchema = z
         email: z.string().email("Invalid email format"),
         password: z.string().min(8, "Password must be at least 8 characters"),
     })
-    .strict();
+    .strict()
 
 export const registerSchema = loginSchema
     .extend({
@@ -14,14 +14,14 @@ export const registerSchema = loginSchema
     .strict()
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords do not match",
-        path: ["confirmPassword"],
+        path: ["confirm-password"],
     });
 
 export const updateUserSchema = z
     .object({
         email: z.string().email("Invalid email format").optional(),
         name: z.string().min(2, "Name must be at least 2 characters").optional(),
-        currentPassword: z.string().min(8, "Current password must be your current password").optional(),
+        currentPassword: z.string().min(8, "Incorrect current password").optional(),
         newPassword: z.string().min(8, "New password must be at least 8 characters").optional(),
     })
     .superRefine((data, ctx) => {
@@ -36,7 +36,7 @@ export const updateUserSchema = z
         if (data.newPassword && data.currentPassword && data.newPassword === data.currentPassword) {
             ctx.addIssue({
                 code: "custom",
-                message: "New Password must be different from the current password",
+                message: "New Password must be different from the old password",
                 path: ["newPassword"],
             });
         }

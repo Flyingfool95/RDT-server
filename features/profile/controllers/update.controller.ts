@@ -6,6 +6,7 @@ import { sendResponse, getSecureBody, getIfExists, optimizeImage } from "../../u
 import { updateUserSchema } from "../../../zod/auth.ts";
 import { generateSalt } from "../../utils/helpers/helpers.ts";
 import { logMessage } from "../../utils/logger/logger.ts";
+import { ZodError } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 
 export async function update(ctx: Context): Promise<void> {
     const userId = ctx.state.user.id;
@@ -34,7 +35,13 @@ export async function update(ctx: Context): Promise<void> {
 
         const isValid = await verify(currentUser.password as string, body.data.currentPassword);
         if (!isValid) {
-            throw new HttpError(401, "Unauthorized", ["Incorrect current password"]);
+            throw ZodError.create([
+                {
+                    path: ["currentPassword"],
+                    message: "Incorrect current password",
+                    code: "custom",
+                },
+            ]);
         }
 
         const salt = generateSalt(24);

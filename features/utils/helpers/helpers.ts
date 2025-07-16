@@ -24,7 +24,7 @@ export function sendResponse<T>(
     const response: ApiResponse<T> = {
         success,
         status,
-        message,
+        message: message ?? "Undefined message",
         data,
         errors,
     };
