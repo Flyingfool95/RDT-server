@@ -19,7 +19,7 @@ export async function jwtChecker(ctx: Context, next: Next) {
     };
 
     const userData = getIfExists("user", "id", verifiedAccessToken.id);
-    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["Invalid credentials"]);
 
     ctx.state.user = {
         id: userData.id,

@@ -11,7 +11,7 @@ import { ZodError } from "https://deno.land/x/zod@v3.24.2/mod.ts";
 export async function update(ctx: Context): Promise<void> {
     const userId = ctx.state.user.id;
     const currentUser = getIfExists("user", "id", userId);
-    if (!currentUser) throw new HttpError(401, "Unauthorized", ["User not found"]);
+    if (!currentUser) throw new HttpError(401, "Unauthorized", ["Unauthorized"]);
 
     const body = (await getSecureBody(ctx, updateUserSchema)) as {
         data: {
@@ -72,7 +72,7 @@ export async function update(ctx: Context): Promise<void> {
     }
 
     const updatedUser = getIfExists("user", "id", userId);
-    if (!updatedUser) throw new HttpError(404, "Unauthorized", ["User not found"]);
+    if (!updatedUser) throw new HttpError(404, "Unauthorized", ["Unauthorized"]);
 
     const safeUser = {
         id: updatedUser.id,

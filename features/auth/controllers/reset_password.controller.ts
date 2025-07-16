@@ -22,7 +22,7 @@ export async function resetPassword(ctx: Context): Promise<void> {
     }
 
     const userData = getIfExists("user", "email", verifiedRefreshToken.email);
-    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["Unauthorized"]);
 
     const salt = generateSalt(24);
     const hashedPassword = await hash(body.data.password, { salt });

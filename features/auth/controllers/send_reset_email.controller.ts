@@ -10,7 +10,7 @@ export async function sendResetEmail(ctx: Context): Promise<void> {
     const body = await getSecureBody(ctx, sendResetEmailSchema);
 
     const userData = getIfExists("user", "email", body.data.email);
-    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["Unauthorized"]);
 
     const token = await generateJWT({ email: body.data.email }, 300);
 

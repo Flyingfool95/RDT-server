@@ -39,7 +39,7 @@ export async function refreshTokens(ctx: Context) {
     }
 
     const userData = getIfExists("user", "id", verifiedRefreshToken.id);
-    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["Unauthorized"]);
 
     const payload = {
         id: userData.id,

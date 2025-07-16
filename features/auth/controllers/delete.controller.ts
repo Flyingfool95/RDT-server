@@ -7,7 +7,7 @@ import db from "../../../db/db.ts";
 
 export async function deleteUser(ctx: Context): Promise<void> {
     const userData = getIfExists("user", "id", ctx.state.user.id);
-    if (!userData) throw new HttpError(401, "Unauthorized", ["User not found"]);
+    if (!userData) throw new HttpError(401, "Unauthorized", ["Unauthorized"]);
 
     db.query(`DELETE FROM user WHERE id = ?`, [ctx.state.user.id]);
 

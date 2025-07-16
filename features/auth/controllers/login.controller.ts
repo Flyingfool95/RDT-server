@@ -12,7 +12,7 @@ export async function login(ctx: Context): Promise<void> {
 
     const userData = getIfExists("user", "email", body.data.email);
     if (!userData) {
-        throw new HttpError(401, "Unauthorized", ["User not found"]);
+        throw new HttpError(401, "Unauthorized", ["Invalid email or password"]);
     }
 
     const isMatch = await verify(userData.password as string, body.data.password);
