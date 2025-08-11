@@ -16,7 +16,7 @@ export async function errorHandler(ctx: Context, next: Next) {
         if (error instanceof HttpError) {
             errorType = "Http Error";
             errors = [{ message: `${error.errors?.join(", ")}`, path: errorType }];
-            sendResponse(ctx, error.status, { errors });
+            sendResponse(ctx, error.status, { message: error.message, errors });
         } else if (error instanceof SqliteError) {
             errorType = "DB Error";
             errors = [{ message: error.message }];
