@@ -131,10 +131,10 @@ export function kebabToCamel(str: string) {
 
 export async function optimizeImage(file: File | Blob) {
     const buffer = new Uint8Array(await file.arrayBuffer());
-    const optimizedFile = await resize(buffer, {
+    const optimizedBuffer = await resize(buffer, {
         width: 128,
         height: 128,
     });
 
-    return optimizedFile;
+    return new Blob([optimizedBuffer], { type: "image/jpeg" });
 }
