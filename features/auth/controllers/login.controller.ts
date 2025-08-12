@@ -12,7 +12,7 @@ export async function login(ctx: Context): Promise<void> {
 
     const userData = getIfExists("user", "email", body.data.email);
     if (!userData) {
-        throw new HttpError(401, "Unauthorized", ["Invalid email or password"]);
+        throw new HttpError(401, "Unauthorized", ["Incorrect credentials"]);
     }
 
     const isMatch = await verify(userData.password as string, body.data.password);
@@ -38,7 +38,7 @@ export async function login(ctx: Context): Promise<void> {
         httpOnly: true,
     });
 
-    await logMessage("info", "User logged in", userData.id as string);
+    await logMessage("info", "User logged in", { userId: userData.id as string, clientIp: ctx.request.ip });
     sendResponse(ctx, 200, {
         message: "Logged in",
         data: {
