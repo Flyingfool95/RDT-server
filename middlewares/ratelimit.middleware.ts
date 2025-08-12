@@ -45,13 +45,3 @@ export async function rateLimiter(ctx: Context, next: Next): Promise<void> {
 
     await next();
 }
-
-// Periodic cleanup for unused entries (optional, for memory management)
-setInterval(() => {
-    const now = Date.now();
-    for (const [clientId, data] of clientRequests) {
-        if (now - data.startTime > WINDOW_MS) {
-            clientRequests.delete(clientId);
-        }
-    }
-}, WINDOW_MS * 2); // Run less frequently
