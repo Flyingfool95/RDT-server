@@ -27,7 +27,6 @@ const cleanup = () => {
 setInterval(cleanup, WINDOW_MS);
 
 export async function rateLimiter(ctx: Context, next: Next): Promise<void> {
-    console.log(clientRequests)
     const accessToken = await ctx.cookies.get("access_token");
     const verifiedAccessToken = accessToken ? ((await verifyJWT(accessToken)) as { id: string }) : null;
     const clientId = verifiedAccessToken?.id || ctx.request.ip || "unknown";
