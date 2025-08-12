@@ -22,6 +22,6 @@ export async function sendResetEmail(ctx: Context): Promise<void> {
         `<p>Reset your password <a href="${Deno.env.get("FRONTEND_URL")}/reset-password?token=${token}">here</a></p>`
     );
 
-    await logMessage("info", "Sending reset email", body.data.email);
+    await logMessage("info", "Sending reset email", { userId: body.data.email });
     sendResponse(ctx, 200, { message: "Email sent" });
 }

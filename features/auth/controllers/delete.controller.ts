@@ -15,6 +15,6 @@ export async function deleteUser(ctx: Context): Promise<void> {
         { name: "access_token", path: "/" },
         { name: "refresh_token", path: "/api/v1/auth/refresh-tokens" },
     ]);
-    await logMessage("info", "User deleted", ctx.state.user.id);
+    await logMessage("info", "User deleted", { userId: ctx.state.user.id });
     sendResponse(ctx, 200, { message: "User deleted" });
 }
