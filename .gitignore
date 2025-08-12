@@ -1,4 +1,0 @@
-.env.local
-*.db
-logs/*.jsonl
-node_modules
