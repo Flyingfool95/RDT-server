@@ -11,7 +11,7 @@ interface RequestData {
     startTime: number;
 }
 
-const clientRequests = new Map<string, RequestData>();
+const clientRequests = new Map<string, RequestData & { blocked?: boolean }>();
 
 export async function rateLimiter(ctx: Context, next: Next): Promise<void> {
     const accessToken = await ctx.cookies.get("access_token");
@@ -21,10 +21,13 @@ export async function rateLimiter(ctx: Context, next: Next): Promise<void> {
 
     let requestData = clientRequests.get(clientId);
 
-    // Clean up expired entry immediately when accessed
     if (requestData && now - requestData.startTime > WINDOW_MS) {
         clientRequests.delete(clientId);
         requestData = undefined;
+    }
+
+    if (requestData?.blocked) {
+        throw new HttpError(429, "Rate limit exceeded", ["Too many requests. Please try again later."]);
     }
 
     if (!requestData) {
@@ -35,11 +38,15 @@ export async function rateLimiter(ctx: Context, next: Next): Promise<void> {
     }
 
     if (requestData.count > RATE_LIMIT) {
+        requestData.blocked = true;
+        requestData.startTime = now;
+
         logMessage("error", "Rate limit exceeded", {
             clientIp: ctx.request.ip,
             userId: clientId !== ctx.request.ip ? clientId : undefined,
             requestCount: requestData.count,
         });
+
         throw new HttpError(429, "Rate limit exceeded", ["Too many requests. Please try again later."]);
     }
 
