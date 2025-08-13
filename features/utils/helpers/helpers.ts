@@ -136,5 +136,5 @@ export async function optimizeImage(file: File | Blob) {
         height: 128,
     });
 
-    return new Blob([optimizedBuffer], { type: "image/jpeg" });
+    return optimizedBuffer;
 }
