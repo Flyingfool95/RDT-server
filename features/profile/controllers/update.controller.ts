@@ -3,10 +3,10 @@ import { Context } from "jsr:@oak/oak";
 import { hash, verify } from "jsr:@felix/argon2";
 import { HttpError } from "../../utils/classes/classes.ts";
 import { sendResponse, getSecureBody, getIfExists, optimizeImage } from "../../utils/helpers/helpers.ts";
-import { updateUserSchema } from "../../../zod/auth.ts";
 import { generateSalt } from "../../utils/helpers/helpers.ts";
 import { logMessage } from "../../utils/logger/logger.ts";
 import { ZodError } from "https://deno.land/x/zod@v3.24.2/mod.ts";
+import { updateUserSchema } from "../../../zod/profile.ts";
 
 export async function update(ctx: Context): Promise<void> {
     const userId = ctx.state.user.id;
@@ -82,5 +82,5 @@ export async function update(ctx: Context): Promise<void> {
     };
 
     await logMessage("info", "User profile updated", { userId });
-    sendResponse(ctx, 200, { message: "Profile updated", data: { user: safeUser } });
+    sendResponse(ctx, 200, { message: "Profile updated", data: safeUser });
 }
