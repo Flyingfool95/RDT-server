@@ -23,6 +23,7 @@ export async function sendMail(
     html: string
 ) {
     const client = createClient();
+
     try {
         await client.send({
             from: fromMail,

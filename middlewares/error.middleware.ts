@@ -19,15 +19,15 @@ export async function errorHandler(ctx: Context, next: Next) {
             sendResponse(ctx, error.status, { message: error.message, errors });
         } else if (error instanceof SqliteError) {
             errorType = "DB Error";
-            errors = [{ message: error.message }];
+            errors = [{ message: error.message, path: errorType }];
             logMessage("error", `${errorType} - ${error.message}`);
-            sendResponse(ctx, 400, { errors: [{ message: `${errors.join(", ")}`, path: errorType }] });
+            sendResponse(ctx, 400, { message: errorType, errors });
         } else if (error instanceof ZodError) {
             errorType = "Validation Error";
             errors = error.issues.map((err) => {
                 return { message: err.message, path: err.path.join(", ") };
             });
-            sendResponse(ctx, 400, { errors });
+            sendResponse(ctx, 400, { message: errorType, errors });
         } else if (error instanceof Error) {
             errorType = "Error";
             errors = [{ message: error.message }];
