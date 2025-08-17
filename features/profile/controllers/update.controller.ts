@@ -53,11 +53,15 @@ export async function update(ctx: Context): Promise<void> {
     if (body.data.email !== undefined && body.data.email !== currentUser.email) {
         db.query(`UPDATE user SET email = ? WHERE id = ?`, [body.data.email, userId]);
         updated = true;
+    } else if (body.data.email === currentUser.email) {
+        throw new HttpError(409, "Bad Request", ["Please fill in a new email"]);
     }
 
     if (body.data.name !== undefined && body.data.name !== currentUser.name) {
         db.query(`UPDATE user SET name = ? WHERE id = ?`, [body.data.name, userId]);
         updated = true;
+    } else if (body.data.name === currentUser.name) {
+        throw new HttpError(409, "Bad Request", ["Please fill in a new name"]);
     }
 
     if (body.files.image !== undefined) {
