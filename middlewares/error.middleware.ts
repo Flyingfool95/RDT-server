@@ -10,32 +10,32 @@ export async function errorHandler(ctx: Context, next: Next) {
     try {
         await next();
     } catch (error: unknown) {
-        let errorType = "Error";
-        let errors: Array<ApiError> = [];
+        let status = 500;
+        let message = "Internal Server Error";
+        let errors: ApiError[] = [];
 
         if (error instanceof HttpError) {
-            errorType = "Http Error";
-            errors = [{ message: `${error.errors?.join(", ")}`, path: errorType }];
-            sendResponse(ctx, error.status, { message: error.message, errors });
+            status = error.status;
+            message = error.message;
+            errors = error.errors?.map((err) => ({ message: err, path: "Http Error" })) || [];
         } else if (error instanceof SqliteError) {
-            errorType = "DB Error";
-            errors = [{ message: error.message, path: errorType }];
-            logMessage("error", `${errorType} - ${error.message}`);
-            sendResponse(ctx, 400, { message: errorType, errors });
+            status = 400;
+            message = "DB Error";
+            errors = [{ message: error.message, path: "DB Error" }];
+            logMessage("error", `${message} - ${error.message}`);
         } else if (error instanceof ZodError) {
-            errorType = "Validation Error";
-            errors = error.issues.map((err) => {
-                return { message: err.message, path: err.path.join(", ") };
-            });
-            sendResponse(ctx, 400, { message: errorType, errors });
+            status = 400;
+            message = "Validation Error";
+            errors = error.issues.map((err) => ({ message: err.message, path: err.path.join(", ") }));
         } else if (error instanceof Error) {
-            errorType = "Error";
-            errors = [{ message: error.message }];
-            logMessage("error", `${errorType} - ${error.message}`);
-            sendResponse(ctx, 500, { errors: [{ message: `${errors.join(", ")}`, path: errorType }] });
+            message = error.message;
+            errors = [{ message, path: "Error" }];
+            logMessage("error", `${message}`);
         } else {
-            logMessage("error", `${errorType} - ${errors.join(", ")}`);
-            sendResponse(ctx, 500, { errors: [{ message: `${errors.join(", ")}`, path: errorType }] });
+            errors = [{ message: "Unknown error", path: "Error" }];
+            logMessage("error", "Unknown error occurred");
         }
+
+        sendResponse(ctx, status, { message, errors });
     }
 }

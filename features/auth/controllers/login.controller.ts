@@ -42,9 +42,7 @@ export async function login(ctx: Context): Promise<void> {
     sendResponse(ctx, 200, {
         message: "Logged in",
         data: {
-            id: userData.id,
-            email: userData.email,
-            name: userData.name,
+            ...payload,
             image: userData.image,
         },
     });
