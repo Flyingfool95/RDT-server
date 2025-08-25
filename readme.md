@@ -7,7 +7,7 @@ Its purpose is to provide a starting point for web applications with the followi
 ## Features
 
 -   **[Oak](https://oakserver.org/)** – RESTful routing
--   **SQLite** as the default database (easily replaceable with another)
+-   **SQLite** as the default database
 -   **Authentication** using email and password
 -   **JWT sessions** for stateless authentication
 -   **Validation** with [Zod](https://github.com/colinhacks/zod)
